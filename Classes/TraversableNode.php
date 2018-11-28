@@ -64,11 +64,11 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param string $newName
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function setName($newName)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     public function getName(): string
@@ -87,11 +87,11 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
     /**
      * @param string $propertyName
      * @param mixed $value
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function setProperty($propertyName, $value)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
@@ -105,11 +105,11 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param string $propertyName
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function removeProperty($propertyName)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
@@ -122,37 +122,37 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param \object $contentObject
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function setContentObject($contentObject)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @return \object|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function getContentObject()
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function unsetContentObject()
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @param ContentRepository\Model\NodeType $nodeType
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function setNodeType(ContentRepository\Model\NodeType $nodeType)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
@@ -165,11 +165,11 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param bool $hidden
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function setHidden($hidden)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
@@ -182,11 +182,11 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param \DateTime|null $dateTime
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function setHiddenBeforeDateTime(\DateTime $dateTime = null)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     public function getHiddenBeforeDateTime(): \DateTimeInterface
@@ -196,20 +196,20 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param \DateTime|null $dateTime
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function setHiddenAfterDateTime(\DateTime $dateTime = null)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @param bool $hidden
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function setHiddenInIndex($hidden)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     public function isHiddenInIndex(): bool
@@ -219,11 +219,11 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param array $accessRoles
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function setAccessRoles(array $accessRoles)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     public function getAccessRoles(): array
@@ -257,20 +257,20 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @return int|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function getDepth()
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @param ContentRepository\Model\Workspace $workspace
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function setWorkspace(ContentRepository\Model\Workspace $workspace)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     public function getWorkspace(): ?ContentRepository\Model\Workspace
@@ -280,11 +280,11 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param int $index
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function setIndex($index)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     public function getIndex(): ?int
@@ -307,11 +307,11 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
      * @param ContentRepository\Model\NodeType|null $nodeType
      * @param null $identifier
      * @return \Neos\ContentRepository\Domain\Model\Node|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function createNode($name, ContentRepository\Model\NodeType $nodeType = null, $identifier = null)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
@@ -319,22 +319,22 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
      * @param ContentRepository\Model\NodeType|null $nodeType
      * @param null $identifier
      * @return \Neos\ContentRepository\Domain\Model\Node|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function createSingleNode($name, ContentRepository\Model\NodeType $nodeType = null, $identifier = null)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @param ContentRepository\Model\NodeTemplate $nodeTemplate
      * @param string|null $nodeName
      * @return ContentRepository\Model\NodeInterface|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function createNodeFromTemplate(ContentRepository\Model\NodeTemplate $nodeTemplate, $nodeName = null)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
@@ -348,11 +348,11 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @return ContentRepository\Model\NodeInterface|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function getPrimaryChildNode()
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
@@ -377,28 +377,28 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
     /**
      * @param null $nodeTypeFilter
      * @return bool|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function hasChildNodes($nodeTypeFilter = null)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function remove()
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @param bool $removed
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function setRemoved($removed)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     public function isRemoved(): bool
@@ -408,99 +408,99 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @return bool|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function isVisible()
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @return bool|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function isAccessible()
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @return bool|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function hasAccessRestrictions()
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @param ContentRepository\Model\NodeType $nodeType
      * @return bool|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function isNodeTypeAllowedAsChildNode(ContentRepository\Model\NodeType $nodeType)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @param ContentRepository\Model\NodeInterface $referenceNode
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function moveBefore(ContentRepository\Model\NodeInterface $referenceNode)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @param ContentRepository\Model\NodeInterface $referenceNode
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function moveAfter(ContentRepository\Model\NodeInterface $referenceNode)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @param ContentRepository\Model\NodeInterface $referenceNode
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function moveInto(ContentRepository\Model\NodeInterface $referenceNode)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @param ContentRepository\Model\NodeInterface $referenceNode
      * @param string $nodeName
      * @return ContentRepository\Model\NodeInterface|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function copyBefore(ContentRepository\Model\NodeInterface $referenceNode, $nodeName)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @param ContentRepository\Model\NodeInterface $referenceNode
      * @param string $nodeName
      * @return ContentRepository\Model\NodeInterface|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function copyAfter(ContentRepository\Model\NodeInterface $referenceNode, $nodeName)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     /**
      * @param ContentRepository\Model\NodeInterface $referenceNode
      * @param string $nodeName
      * @return ContentRepository\Model\NodeInterface|void
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function copyInto(ContentRepository\Model\NodeInterface $referenceNode, $nodeName)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     public function getNodeData(): ContentRepository\Model\NodeData
@@ -532,11 +532,11 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param ContentRepository\Service\Context $context
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function createVariantForContext($context)
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     public function isAutoCreated(): bool
@@ -547,11 +547,11 @@ final class TraversableNode implements ContentRepository\Model\NodeInterface
     }
 
     /**
-     * @throws NodeOperationIsNotSupported
+     * @throws NodeOperationIsNotSupportedException
      */
     public function getOtherNodeVariants()
     {
-        throw new NodeOperationIsNotSupported();
+        throw new NodeOperationIsNotSupportedException();
     }
 
     public function getHiddenAfterDateTime(): ?\DateTimeInterface

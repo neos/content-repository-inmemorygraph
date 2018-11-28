@@ -9,6 +9,6 @@ namespace Neos\ContentRepository\InMemoryGraph\Dimension;
 /**
  * The exception to be thrown
  */
-class DimensionIdentifierIsConflicting extends \DomainException
+class DimensionIdentifierIsConflictingException extends \DomainException
 {
 }

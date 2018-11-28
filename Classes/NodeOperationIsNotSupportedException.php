@@ -9,6 +9,6 @@ namespace Neos\ContentRepository\InMemoryGraph;
 /**
  * An exception to be thrown if a node operation is not supported
  */
-class NodeOperationIsNotSupported extends \Exception
+class NodeOperationIsNotSupportedException extends \Exception
 {
 }

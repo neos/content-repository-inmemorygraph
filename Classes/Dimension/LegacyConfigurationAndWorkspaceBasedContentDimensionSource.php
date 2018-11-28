@@ -86,7 +86,7 @@ class LegacyConfigurationAndWorkspaceBasedContentDimensionSource implements Dime
             $variationEdges[] = new Dimension\ContentDimensionValueVariationEdge($dimensionValues[$generalizationIdentifier], $dimensionValues[$specializationIdentifier]);
         }
         if (isset($this->dimensions['_workspace'])) {
-            throw new DimensionIdentifierIsConflicting('Dimension identifier "_workspace" required for variation calculation but already occupied', 1532071326);
+            throw new DimensionIdentifierIsConflictingException('Dimension identifier "_workspace" required for variation calculation but already occupied', 1532071326);
         }
         $this->dimensions['_workspace'] = new Dimension\ContentDimension(
             new Dimension\ContentDimensionIdentifier('_workspace'),
