@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neos\ContentRepository\InMemoryGraph\Dimension;
 
 /*
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
  */
+
 use Neos\ContentRepository\DimensionSpace\Dimension;
 use Neos\ContentRepository\Domain as ContentRepository;
 use Neos\Flow\Security;
@@ -29,13 +32,20 @@ class LegacyConfigurationAndWorkspaceBasedContentDimensionSource implements Dime
      */
     protected $workspaceRepository;
 
+    /**
+     * @param LegacyConfigurationBasedContentDimensionSource $baseContentDimensionSource
+     * @param ContentRepository\Repository\WorkspaceRepository $workspaceRepository
+     */
     public function __construct(LegacyConfigurationBasedContentDimensionSource $baseContentDimensionSource, ContentRepository\Repository\WorkspaceRepository $workspaceRepository)
     {
         $this->baseContentDimensionSource = $baseContentDimensionSource;
         $this->workspaceRepository = $workspaceRepository;
     }
 
-    protected function initializeDimensions()
+    /**
+     * @return void
+     */
+    protected function initializeDimensions(): void
     {
         $this->dimensions = $this->baseContentDimensionSource->getContentDimensionsOrderedByPriority();
         /** @var Dimension\ContentDimensionValueVariationEdge[] $variationEdges */
@@ -107,7 +117,7 @@ class LegacyConfigurationAndWorkspaceBasedContentDimensionSource implements Dime
         if (is_null($this->dimensions)) {
             $this->initializeDimensions();
         }
-        return $this->dimensions[(string) $dimensionIdentifier] ?? null;
+        return $this->dimensions[(string)$dimensionIdentifier] ?? null;
     }
 
     /**

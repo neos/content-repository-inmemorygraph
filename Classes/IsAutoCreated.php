@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Neos\ContentRepository\InMemoryGraph;
 
 /*
@@ -10,6 +13,10 @@ namespace Neos\ContentRepository\InMemoryGraph;
  */
 final class IsAutoCreated
 {
+    /**
+     * @param TraversableNode $node
+     * @return bool
+     */
     public function isSatisfiedBy(TraversableNode $node): bool
     {
         $parent = $node->getParent();

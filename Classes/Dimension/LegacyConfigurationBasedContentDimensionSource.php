@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neos\ContentRepository\InMemoryGraph\Dimension;
 
 /*
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
  */
+
 use Neos\ContentRepository\DimensionSpace\Dimension;
 
 /**
@@ -22,12 +25,18 @@ class LegacyConfigurationBasedContentDimensionSource implements Dimension\Conten
      */
     protected $rawDimensionConfiguration;
 
+    /**
+     * @param array $rawDimensionConfiguration
+     */
     public function __construct(array $rawDimensionConfiguration)
     {
         $this->rawDimensionConfiguration = $rawDimensionConfiguration;
     }
 
-    protected function initializeDimensions()
+    /**
+     * @return void
+     */
+    protected function initializeDimensions(): void
     {
         $this->dimensions = [];
 
@@ -41,6 +50,10 @@ class LegacyConfigurationBasedContentDimensionSource implements Dimension\Conten
             $contentDimensionValues = [];
             $rawGeneralizations = [];
             foreach ($rawDimensionConfiguration['presets'] as $preset) {
+                if (!is_array($preset) || !array_key_exists('values', $preset)) {
+                    continue;
+                }
+
                 $rawValue = reset($preset['values']);
                 if (count($preset['values']) > 1) {
                     $generalization = null;
@@ -115,7 +128,7 @@ class LegacyConfigurationBasedContentDimensionSource implements Dimension\Conten
         if (is_null($this->dimensions)) {
             $this->initializeDimensions();
         }
-        return $this->dimensions[(string) $dimensionIdentifier] ?? null;
+        return $this->dimensions[(string)$dimensionIdentifier] ?? null;
     }
 
     /**

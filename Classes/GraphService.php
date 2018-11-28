@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neos\ContentRepository\InMemoryGraph;
 
 /*
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
  */
-use Neos\Flow\Annotations as Flow;
+
 use Neos\ContentRepository\DimensionSpace\Dimension;
 use Neos\ContentRepository\DimensionSpace\DimensionSpace;
 use Neos\ContentRepository\Domain as ContentRepository;
+use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\ConsoleOutput;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\Persistence\QueryResultInterface;
@@ -64,6 +67,13 @@ final class GraphService
      */
     protected $dimensionSpacePointFactory;
 
+    /**
+     * @param DimensionSpace\InterDimensionalVariationGraph $variationGraph
+     * @param DimensionSpace\ContentDimensionZookeeper $contentDimensionZookeeper
+     * @param ContentRepository\Repository\WorkspaceRepository $workspaceRepository
+     * @param ContentRepository\Repository\NodeDataRepository $nodeDataRepository
+     * @param PersistenceManagerInterface $persistenceManager
+     */
     public function __construct(
         DimensionSpace\InterDimensionalVariationGraph $variationGraph,
         DimensionSpace\ContentDimensionZookeeper $contentDimensionZookeeper,
@@ -79,6 +89,10 @@ final class GraphService
         $this->workspaceDimensionIdentifier = new Dimension\ContentDimensionIdentifier('_workspace');
     }
 
+    /**
+     * @param ConsoleOutput|null $output
+     * @return ContentGraph
+     */
     public function getContentGraph(ConsoleOutput $output = null): ContentGraph
     {
         $start = microtime(true);
@@ -114,6 +128,7 @@ final class GraphService
         }
         if ($output) {
             $output->progressFinish();
+            $output->outputLine();
             $output->outputLine('Initialized nodes after ' . (microtime(true) - $start));
         }
 
@@ -128,6 +143,7 @@ final class GraphService
         $result = new ContentGraph($subgraphs, $nodes, $aggregates, $output);
         if ($output) {
             $output->outputLine('Initialized graph after ' . (microtime(true) - $start));
+            $output->outputLine('Memory used: %4.2fMB', [memory_get_peak_usage(true) / 1048576]);
         }
 
         return $result;
@@ -159,8 +175,7 @@ final class GraphService
             ->setOrderings([
                 'path' => 'ASC',
                 'workspace' => 'ASC'
-            ])
-        ;
+            ]);
 
         return $query->execute();
     }
@@ -198,6 +213,7 @@ final class GraphService
         }
         if ($output) {
             $output->progressFinish();
+            $output->outputLine();
         }
 
         return $aggregates;
@@ -209,15 +225,15 @@ final class GraphService
      * @param array|ReadOnlyNodeAggregate[] $aggregates
      * @param array|ContentSubgraph[] $subgraphs
      * @param ConsoleOutput|null $output
+     * @return void
      */
-    protected function assignNodesToSubgraphs(array $aggregates, array $subgraphs, ConsoleOutput $output = null)
+    protected function assignNodesToSubgraphs(array $aggregates, array $subgraphs, ConsoleOutput $output = null): void
     {
         if ($output) {
             $output->outputLine('Assigning nodes to subgraphs');
             $output->progressStart(count($aggregates));
         }
         foreach ($aggregates as $aggregateIdentifier => $aggregate) {
-
             foreach ($subgraphs as $subgraph) {
                 $node = $this->findBestSuitedNodeForSubgraph(
                     $subgraph->getWorkspace(),
@@ -236,9 +252,16 @@ final class GraphService
         }
         if ($output) {
             $output->progressFinish();
+            $output->outputLine();
         }
     }
 
+    /**
+     * @param ContentRepository\Model\Workspace $workspace
+     * @param DimensionSpace\DimensionSpacePoint $dimensionSpacePoint
+     * @param ReadOnlyNodeAggregate $nodeAggregate
+     * @return ReadOnlyNode|null
+     */
     protected function findBestSuitedNodeForSubgraph(
         ContentRepository\Model\Workspace $workspace,
         DimensionSpace\DimensionSpacePoint $dimensionSpacePoint,
@@ -267,6 +290,10 @@ final class GraphService
         return null;
     }
 
+    /**
+     * @param DimensionSpace\DimensionSpacePoint $dimensionSpacePoint
+     * @return ContentRepository\Model\Workspace|null
+     */
     protected function getWorkspaceForDimensionSpacePoint(DimensionSpace\DimensionSpacePoint $dimensionSpacePoint): ?ContentRepository\Model\Workspace
     {
         return $this->indexedWorkspaces[$dimensionSpacePoint->getCoordinate($this->workspaceDimensionIdentifier)] ?? null;

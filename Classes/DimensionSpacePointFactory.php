@@ -1,13 +1,16 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Neos\ContentRepository\InMemoryGraph;
 
 /*
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
  */
 
-use Neos\Flow\Annotations as Flow;
-use Neos\ContentRepository\Domain\Model\NodeData;
 use Neos\ContentRepository\DimensionSpace\DimensionSpace;
+use Neos\ContentRepository\Domain\Model\NodeData;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * @Flow\Scope("singleton")
@@ -37,7 +40,6 @@ class DimensionSpacePointFactory
             } else {
                 $coordinates[$contentDimensionIdentifier] = isset($rawDimensionValues[$contentDimensionIdentifier]) ? reset($rawDimensionValues[$contentDimensionIdentifier]) : '_';
             }
-
         }
 
         return new DimensionSpace\DimensionSpacePoint($coordinates);

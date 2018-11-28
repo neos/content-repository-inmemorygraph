@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neos\ContentRepository\InMemoryGraph;
 
 /*
@@ -53,7 +55,12 @@ final class ContentGraph
         }
     }
 
-    public function traverseNodeIndex(callable $callback, bool $includeShadowNodes = false)
+    /**
+     * @param callable $callback
+     * @param bool $includeShadowNodes
+     * @return void
+     */
+    public function traverseNodeIndex(callable $callback, bool $includeShadowNodes = false): void
     {
         foreach ($this->nodeIndex as $node) {
             if (!$includeShadowNodes && $node->getNodeData()->isInternal()) {
@@ -66,7 +73,11 @@ final class ContentGraph
         }
     }
 
-    public function traverseSubgraphs(callable $callback)
+    /**
+     * @param callable $callback
+     * @return void
+     */
+    public function traverseSubgraphs(callable $callback): void
     {
         foreach ($this->subgraphs as $subgraph) {
             $subgraph->traverse($callback);
@@ -81,24 +92,40 @@ final class ContentGraph
         return $this->nodeIndex;
     }
 
+    /**
+     * @param string $nodeIdentifier
+     * @return ReadOnlyNode|null
+     */
     public function getNode(string $nodeIdentifier): ?ReadOnlyNode
     {
         return $this->nodeIndex[$nodeIdentifier] ?? null;
     }
 
-    public function registerNode(ReadOnlyNode $node)
+    /**
+     * @param ReadOnlyNode $node
+     * @return void
+     */
+    public function registerNode(ReadOnlyNode $node): void
     {
         $this->nodeIndex[$node->getNodeIdentifier()] = $node;
     }
 
-    public function unregisterNode(string $nodeIdentifier)
+    /**
+     * @param string $nodeIdentifier
+     * @return void
+     */
+    public function unregisterNode(string $nodeIdentifier): void
     {
         if (isset($this->nodeIndex[$nodeIdentifier])) {
             unset($this->nodeIndex[$nodeIdentifier]);
         }
     }
 
-    public function traverseNodeAggregateIndex(callable $callback)
+    /**
+     * @param callable $callback
+     * @return void
+     */
+    public function traverseNodeAggregateIndex(callable $callback): void
     {
         foreach ($this->nodeAggregateIndex as $nodeAggregate) {
             $callback($nodeAggregate);
@@ -113,17 +140,29 @@ final class ContentGraph
         return $this->nodeAggregateIndex;
     }
 
+    /**
+     * @param string $nodeAggregateIdentifier
+     * @return ReadOnlyNodeAggregate|null
+     */
     public function getNodeAggregate(string $nodeAggregateIdentifier): ?ReadOnlyNodeAggregate
     {
         return $this->nodeAggregateIndex[$nodeAggregateIdentifier] ?? null;
     }
 
-    public function registerNodeAggregate(ReadOnlyNodeAggregate $nodeAggregate)
+    /**
+     * @param ReadOnlyNodeAggregate $nodeAggregate
+     * @return void
+     */
+    public function registerNodeAggregate(ReadOnlyNodeAggregate $nodeAggregate): void
     {
         $this->nodeAggregateIndex[$nodeAggregate->getIdentifier()] = $nodeAggregate;
     }
 
-    public function unregisterNodeAggregate(string $nodeAggregateIdentifier)
+    /**
+     * @param string $nodeAggregateIdentifier
+     * @return void
+     */
+    public function unregisterNodeAggregate(string $nodeAggregateIdentifier): void
     {
         if (isset($this->nodeAggregateIndex[$nodeAggregateIdentifier])) {
             unset($this->nodeAggregateIndex[$nodeAggregateIdentifier]);
@@ -138,11 +177,19 @@ final class ContentGraph
         return $this->subgraphs;
     }
 
+    /**
+     * @param ContentSubgraphIdentifier $contentSubgraphIdentifier
+     * @return ContentSubgraph|null
+     */
     public function getSubgraphByIdentifier(ContentSubgraphIdentifier $contentSubgraphIdentifier): ?ContentSubgraph
     {
-        return $this->getSubgraphByHash((string) $contentSubgraphIdentifier);
+        return $this->getSubgraphByHash((string)$contentSubgraphIdentifier);
     }
 
+    /**
+     * @param string $hash
+     * @return ContentSubgraph|null
+     */
     public function getSubgraphByHash(string $hash): ?ContentSubgraph
     {
         return $this->subgraphs[$hash] ?? null;

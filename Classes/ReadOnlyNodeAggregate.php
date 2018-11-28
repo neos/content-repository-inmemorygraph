@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neos\ContentRepository\InMemoryGraph;
 
 /*
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
  */
+
 use Neos\ContentRepository\DimensionSpace\DimensionSpace;
 use Neos\ContentRepository\Domain as ContentRepository;
 
@@ -28,7 +31,7 @@ final class ReadOnlyNodeAggregate implements \Countable
     /**
      * @var array|ReadOnlyNode[]
      */
-    protected $nodesWithoutWorkspace;
+    protected $nodesWithoutWorkspace = [];
 
     /**
      * @var array|ReadOnlyNode[]
@@ -45,7 +48,11 @@ final class ReadOnlyNodeAggregate implements \Countable
         $this->addNodes($nodes);
     }
 
-    public function addNodes(array $nodes)
+    /**
+     * @param array|ReadOnlyNode[] $nodes
+     * @return void
+     */
+    public function addNodes(array $nodes): void
     {
         foreach ($nodes as $node) {
             if (!$node->getWorkspace()) {
@@ -66,13 +73,21 @@ final class ReadOnlyNodeAggregate implements \Countable
         }
     }
 
-    public function removeNode(DimensionSpace\DimensionSpacePoint $dimensionSpacePoint)
+    /**
+     * @param DimensionSpace\DimensionSpacePoint $dimensionSpacePoint
+     * @return void
+     */
+    public function removeNode(DimensionSpace\DimensionSpacePoint $dimensionSpacePoint): void
     {
         if (isset($this->nodes[$dimensionSpacePoint->getHash()])) {
             unset($this->nodes[$dimensionSpacePoint->getHash()]);
         }
     }
 
+    /**
+     * @param DimensionSpace\DimensionSpacePoint $dimensionSpacePoint
+     * @return ReadOnlyNode|null
+     */
     public function getNodeByDimensionSpacePoint(DimensionSpace\DimensionSpacePoint $dimensionSpacePoint): ?ReadOnlyNode
     {
         return $this->nodes[$dimensionSpacePoint->getHash()] ?? null;
@@ -86,6 +101,10 @@ final class ReadOnlyNodeAggregate implements \Countable
         return $this->shadowNodes;
     }
 
+    /**
+     * @param DimensionSpace\DimensionSpacePoint $dimensionSpacePoint
+     * @return ReadOnlyNode|null
+     */
     public function getShadowNodeByDimensionSpacePoint(DimensionSpace\DimensionSpacePoint $dimensionSpacePoint): ?ReadOnlyNode
     {
         return $this->shadowNodes[$dimensionSpacePoint->getHash()] ?? null;
@@ -110,7 +129,7 @@ final class ReadOnlyNodeAggregate implements \Countable
     /**
      * @return array|ReadOnlyNode[]
      */
-    public function getNodesWithoutWorkspace()
+    public function getNodesWithoutWorkspace(): array
     {
         return $this->nodesWithoutWorkspace;
     }
@@ -123,21 +142,33 @@ final class ReadOnlyNodeAggregate implements \Countable
         return $this->nodes;
     }
 
+    /**
+     * @return string
+     */
     public function getIdentifier(): string
     {
         return $this->identifier;
     }
 
+    /**
+     * @return bool
+     */
     public function isRoot(): bool
     {
         return $this->identifier === self::ROOT_IDENTIFIER;
     }
 
+    /**
+     * @return int
+     */
     public function count(): int
     {
         return count($this->nodes);
     }
 
+    /**
+     * @return bool
+     */
     public function isEmpty(): bool
     {
         return count($this->nodes) === 0;
