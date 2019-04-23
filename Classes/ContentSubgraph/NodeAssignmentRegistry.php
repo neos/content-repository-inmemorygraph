@@ -1,10 +1,13 @@
 <?php
 
-namespace Neos\ContentRepository\InMemoryGraph;
+namespace Neos\ContentRepository\InMemoryGraph\ContentSubgraph;
 
 /*
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
  */
+
+use Neos\ContentRepository\InMemoryGraph\ContentSubgraph\ContentSubgraphIdentifier;
+use Neos\ContentRepository\InMemoryGraph\NodeAggregate\Node;
 
 /**
  * The node assignment registry
@@ -14,7 +17,7 @@ namespace Neos\ContentRepository\InMemoryGraph;
 final class NodeAssignmentRegistry
 {
     /**
-     * @var array|ReadOnlyNode[][]
+     * @var array|Node[][]
      */
     protected $nodesByPathAndSubgraph;
 
@@ -23,12 +26,12 @@ final class NodeAssignmentRegistry
      */
     protected $subgraphsByPathAndNodeIdentifier;
 
-    public function registerNodeByPathAndSubgraphIdentifier(string $path, ContentSubgraphIdentifier $subgraphIdentifier, ReadOnlyNode $node)
+    public function registerNodeByPathAndSubgraphIdentifier(string $path, ContentSubgraphIdentifier $subgraphIdentifier, Node $node)
     {
         $this->nodesByPathAndSubgraph[$path][(string) $subgraphIdentifier] = $node;
     }
 
-    public function getNodeByPathAndSubgraphIdentifier(string $path, ContentSubgraphIdentifier $subgraphIdentifier): ?ReadOnlyNode
+    public function getNodeByPathAndSubgraphIdentifier(string $path, ContentSubgraphIdentifier $subgraphIdentifier): ?Node
     {
         return $this->nodesByPathAndSubgraph[$path][(string) $subgraphIdentifier] ?? null;
     }

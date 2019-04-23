@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Neos\ContentRepository\InMemoryGraph;
+namespace Neos\ContentRepository\InMemoryGraph\ContentSubgraph;
 
 /*
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
  */
 
+use Neos\ContentRepository\InMemoryGraph\NodeAggregate\Node;
+use Neos\ContentRepository\InMemoryGraph\NodeAggregate\NodeAggregate;
 use Neos\Flow\Cli\ConsoleOutput;
 
 /**
@@ -21,19 +23,19 @@ final class ContentGraph
     protected $subgraphs;
 
     /**
-     * @var array|ReadOnlyNode[]
+     * @var array|Node[]
      */
     protected $nodeIndex;
 
     /**
-     * @var array|ReadOnlyNodeAggregate[]
+     * @var array|NodeAggregate[]
      */
     protected $nodeAggregateIndex;
 
     /**
      * @param array|ContentSubgraph[] $subgraphs
-     * @param array|ReadOnlyNode[] $nodes
-     * @param array|ReadOnlyNodeAggregate[] $nodeAggregates
+     * @param array|Node[] $nodes
+     * @param array|NodeAggregate[] $nodeAggregates
      * @param NodeAssignmentRegistry $nodeAssignments
      * @param ConsoleOutput|null $output
      */
@@ -42,35 +44,40 @@ final class ContentGraph
         $this->subgraphs = $subgraphs;
         $this->nodeAggregateIndex = $nodeAggregates;
         $numberOfNodes = 0;
-        $numberOfEdges = 0;
+        $numberOfHierarchyRelations = 0;
 
         if ($output) {
-            $output->outputLine('Assigning edges to nodes...');
+            $output->outputLine('Assigning hierarchy relations to nodes...');
             $output->progressStart(count($nodes));
         }
         foreach ($nodes as $node) {
             if ($node->getPath() !== '/') {
-                foreach ($nodeAssignments->getSubgraphIdentifiersByPathAndNodeIdentifier($node->getPath(),
-                    $node->getNodeIdentifier()) as $subgraphIdentifier) {
+                foreach ($nodeAssignments->getSubgraphIdentifiersByPathAndNodeIdentifier($node->getPath(), $node->getCacheEntryIdentifier()) as $subgraphIdentifier) {
                     $parentNode = $nodeAssignments->getNodeByPathAndSubgraphIdentifier($node->getParentPath(), $subgraphIdentifier);
                     if ($parentNode) {
-                        $edge = new Edge($parentNode, $node, $subgraphs[(string)$subgraphIdentifier],
-                            (string)$subgraphIdentifier, $node->getIndex(), $node->getName(), [
+                        $hierarchyRelation = new HierarchyRelation(
+                            $parentNode,
+                            $node,
+                            $subgraphs[(string)$subgraphIdentifier],
+                            (string)$subgraphIdentifier,
+                            $node->getIndex(),
+                            $node->getName(),
+                            [
                                 'accessRoles' => $node->getAccessRoles(),
                                 'hidden' => $node->isHidden(),
                                 'hiddenBeforeDateTime' => $node->getHiddenBeforeDateTime(),
                                 'hiddenAfterDateTime' => $node->getHiddenAfterDateTime(),
                                 'hiddenInIndex' => $node->isHiddenInIndex(),
-                            ]);
-
-                        $numberOfEdges++;
-                        $node->registerIncomingEdge($edge);
-                        $parentNode->registerOutgoingEdge($edge);
+                            ]
+                        );
+                        $numberOfHierarchyRelations++;
+                        $node->registerIncomingHierarchyRelation($hierarchyRelation);
+                        $parentNode->registerOutgoingHierarchyRelation($hierarchyRelation);
                     }
                 }
             }
 
-            $this->nodeIndex[$node->getNodeIdentifier()] = $node;
+            $this->nodeIndex[$node->getCacheEntryIdentifier()] = $node;
 
             if ($output) {
                 $output->progressAdvance();
@@ -80,18 +87,18 @@ final class ContentGraph
 
         if ($output) {
             $output->progressFinish();
-            $output->outputLine('Successfully initialized content graph containing ' . count($this->nodeIndex) . ' nodes and ' . $numberOfEdges . ' edges.');
+            $output->outputLine('Successfully initialized content graph containing ' . count($this->nodeIndex) . ' nodes and ' . $numberOfHierarchyRelations . ' hierarchy relations.');
         }
 
         if ($output) {
-            $output->outputLine('Assigning reference edges to nodes...');
+            $output->outputLine('Assigning reference relations to nodes...');
             $output->progressStart(count($nodes));
         }
 
-        $numberOfReferenceEdges = 0;
+        $numberOfReferenceRelations = 0;
         foreach ($nodes as $node) {
             if ($node->getPath() !== '/') {
-                $numberOfReferenceEdges += $this->createReferenceEdges($node);
+                $numberOfReferenceRelations += $this->createReferenceRelations($node);
             }
 
             if ($output) {
@@ -101,13 +108,13 @@ final class ContentGraph
 
         if ($output) {
             $output->progressFinish();
-            $output->outputLine('Successfully created ' . $numberOfReferenceEdges . ' reference edges.');
+            $output->outputLine('Successfully created ' . $numberOfReferenceRelations . ' reference relations.');
         }
     }
 
-    public function createReferenceEdges(ReadOnlyNode $sourceNode)
+    public function createReferenceRelations(Node $sourceNode)
     {
-        $numberOfReferenceEdges = 0;
+        $numberOfReferenceRelations = 0;
         foreach ($sourceNode->getNodeType()->getProperties() as $referenceName => $propertyConfiguration) {
             if (isset($propertyConfiguration['type'])) {
                 if (in_array($propertyConfiguration['type'], ['references', 'reference'])) {
@@ -125,31 +132,31 @@ final class ContentGraph
                         $targetNodeAggregate = $this->getNodeAggregate($targetNodeAggregateIdentifier);
 
                         if ($targetNodeAggregate) {
-                            $this->createSingleReferenceEdge($sourceNode, $referenceName, $index, $targetNodeAggregate);
-                            $numberOfReferenceEdges++;
+                            $this->createSingleReferenceRelation($sourceNode, $referenceName, $index, $targetNodeAggregate);
+                            $numberOfReferenceRelations++;
                         }
                     }
                 }
             }
         }
 
-        return $numberOfReferenceEdges;
+        return $numberOfReferenceRelations;
     }
 
-    public function createSingleReferenceEdge(
-        ReadOnlyNode $sourceNode,
+    public function createSingleReferenceRelation(
+        Node $sourceNode,
         string $referenceName,
         int $index,
-        ReadOnlyNodeAggregate $targetNodeAggregate
+        NodeAggregate $targetNodeAggregate
     ) {
-        $referenceEdge = new ReferenceEdge($sourceNode, $targetNodeAggregate, $index, $referenceName, []);
+        $referenceRelation = new ReferenceRelation($sourceNode, $targetNodeAggregate, $index, $referenceName, []);
 
-        $sourceNode->registerOutgoingReferenceEdge($referenceEdge);
+        $sourceNode->registerOutgoingReferenceRelation($referenceRelation);
 
         foreach ($targetNodeAggregate->getNodes() as $targetNodeCandidate) {
-            foreach ($targetNodeCandidate->getIncomingEdges() as $edge) {
-                if ($sourceNode->getIncomingEdgeInSubgraph($edge->getSubgraph()->getIdentifier())) {
-                    $targetNodeCandidate->registerIncomingReferenceEdge($referenceEdge);
+            foreach ($targetNodeCandidate->getIncomingHierarchyRelations() as $hierarchyRelation) {
+                if ($sourceNode->getIncomingHierarchyRelationInSubgraph($hierarchyRelation->getSubgraph()->getIdentifier())) {
+                    $targetNodeCandidate->registerIncomingReferenceRelation($referenceRelation);
                     break;
                 }
             }
@@ -177,21 +184,21 @@ final class ContentGraph
     }
 
     /**
-     * @return array|ReadOnlyNode[]
+     * @return array|Node[]
      */
     public function getNodes(): array
     {
         return $this->nodeIndex;
     }
 
-    public function getNode(string $nodeIdentifier): ?ReadOnlyNode
+    public function getNode(string $nodeIdentifier): ?Node
     {
         return $this->nodeIndex[$nodeIdentifier] ?? null;
     }
 
-    public function registerNode(ReadOnlyNode $node): void
+    public function registerNode(Node $node): void
     {
-        $this->nodeIndex[$node->getNodeIdentifier()] = $node;
+        $this->nodeIndex[$node->getCacheEntryIdentifier()] = $node;
     }
 
     public function unregisterNode(string $nodeIdentifier): void
@@ -208,21 +215,21 @@ final class ContentGraph
     }
 
     /**
-     * @return array|ReadOnlyNodeAggregate[]
+     * @return array|NodeAggregate[]
      */
     public function getNodeAggregates(): array
     {
         return $this->nodeAggregateIndex;
     }
 
-    public function getNodeAggregate(string $nodeAggregateIdentifier): ?ReadOnlyNodeAggregate
+    public function getNodeAggregate(string $nodeAggregateIdentifier): ?NodeAggregate
     {
         return $this->nodeAggregateIndex[$nodeAggregateIdentifier] ?? null;
     }
 
-    public function registerNodeAggregate(ReadOnlyNodeAggregate $nodeAggregate): void
+    public function registerNodeAggregate(NodeAggregate $nodeAggregate): void
     {
-        $this->nodeAggregateIndex[$nodeAggregate->getIdentifier()] = $nodeAggregate;
+        $this->nodeAggregateIndex[(string)$nodeAggregate->getIdentifier()] = $nodeAggregate;
     }
 
     public function unregisterNodeAggregate(string $nodeAggregateIdentifier): void

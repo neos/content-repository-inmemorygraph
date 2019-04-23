@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Neos\ContentRepository\InMemoryGraph;
+namespace Neos\ContentRepository\InMemoryGraph\ContentSubgraph;
 
 /*
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.

@@ -2,24 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Neos\ContentRepository\InMemoryGraph;
+namespace Neos\ContentRepository\InMemoryGraph\ContentSubgraph;
 
 /*
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
  */
 
+use Neos\ContentRepository\Domain\NodeAggregate\NodeName;
+use Neos\ContentRepository\InMemoryGraph\NodeAggregate\Node;
+
 /**
- * The Edge domain entity
+ * The hierarchy relation domain entity
  */
-final class Edge
+final class HierarchyRelation
 {
     /**
-     * @var ReadOnlyNode
+     * @var Node
      */
     protected $parent;
 
     /**
-     * @var ReadOnlyNode
+     * @var Node
      */
     protected $child;
 
@@ -39,7 +42,7 @@ final class Edge
     protected $position;
 
     /**
-     * @var string
+     * @var NodeName
      */
     protected $name;
 
@@ -48,17 +51,7 @@ final class Edge
      */
     protected $properties = [];
 
-    /**
-     * Edge constructor.
-     * @param ReadOnlyNode $parent
-     * @param ReadOnlyNode $child
-     * @param ContentSubgraph $subgraph
-     * @param string $subgraphHash
-     * @param string $position
-     * @param string $name
-     * @param array $properties
-     */
-    public function __construct(ReadOnlyNode $parent, ReadOnlyNode $child, ContentSubgraph $subgraph, string $subgraphHash, $position = 'start', $name = null, array $properties = [])
+    public function __construct(Node $parent, Node $child, ContentSubgraph $subgraph, string $subgraphHash, $position = 'start', NodeName $name = null, array $properties = [])
     {
         $this->parent = $parent;
         $this->child = $child;
@@ -71,34 +64,22 @@ final class Edge
         $this->mergeStructurePropertiesWithParent();
     }
 
-
-    /**
-     * @return ContentSubgraph
-     */
     public function getSubgraph(): ContentSubgraph
     {
         return $this->subgraph;
     }
 
-    /**
-     * @return string
-     */
     public function getSubgraphHash(): string
     {
         return $this->subgraphHash;
     }
 
-    /**
-     * @return ReadOnlyNode
-     */
-    public function getParent():ReadOnlyNode
+    public function getParent():Node
     {
         return $this->parent;
     }
-    /**
-     * @return ReadOnlyNode
-     */
-    public function getChild(): ReadOnlyNode
+
+    public function getChild(): Node
     {
         return $this->child;
     }
@@ -113,61 +94,46 @@ final class Edge
         return $this->position;
     }
 
-    /**
-     * @return string
-     */
-    public function getName()
+    public function getName(): ?NodeName
     {
         return $this->name;
     }
 
-    /**
-     * @return string
-     */
-    public function getNameForGraph()
+    public function getNameForGraph(): string
     {
         return $this->getName() . '@' . $this->subgraphHash;
     }
 
-    /**
-     * @return array
-     */
     public function getProperties() : array
     {
         return $this->properties;
     }
 
     /**
-     * @param $propertyName
+     * @param string $propertyName
      * @return mixed|null
      */
-    public function getProperty($propertyName)
+    public function getProperty(string $propertyName)
     {
         return $this->properties[$propertyName] ?? null;
     }
 
     /**
-     * @param $propertyName
-     * @param $propertyValue
+     * @param string $propertyName
+     * @param mixed $propertyValue
      * @return void
      */
-    public function setProperty($propertyName, $propertyValue)
+    public function setProperty(string $propertyName, $propertyValue): void
     {
         $this->properties[$propertyName] = $propertyValue;
     }
 
-    /**
-     * @return Edge|null
-     */
-    public function getParentEdge()
+    public function getParentEdge(): ?HierarchyRelation
     {
-        return $this->getParent()->getIncomingEdgeInSubgraph($this->subgraph->getIdentifier());
+        return $this->getParent()->getIncomingHierarchyRelationInSubgraph($this->subgraph->getIdentifier());
     }
 
-    /**
-     * @return void
-     */
-    public function mergeStructurePropertiesWithParent()
+    public function mergeStructurePropertiesWithParent(): void
     {
         if (!$this->getParentEdge()) {
             return;
@@ -197,6 +163,6 @@ final class Edge
 
     public function getLocalIdentifier(): string
     {
-        return $this->getName() ?: $this->getChild()->getIdentifier();
+        return $this->getName() ? (string)$this->getNameForGraph() : (string)$this->getChild()->getNodeAggregateIdentifier();
     }
 }

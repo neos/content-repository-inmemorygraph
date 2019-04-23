@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Neos\ContentRepository\InMemoryGraph;
+namespace Neos\ContentRepository\InMemoryGraph\Dimension;
 
 /*
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
@@ -10,6 +10,7 @@ namespace Neos\ContentRepository\InMemoryGraph;
 
 use Neos\ContentRepository\DimensionSpace\DimensionSpace;
 use Neos\ContentRepository\Domain\Model\NodeData;
+use Neos\ContentRepository\InMemoryGraph\Dimension;
 use Neos\Flow\Annotations as Flow;
 
 /**
@@ -35,8 +36,8 @@ class DimensionSpacePointFactory
         $coordinates = [];
         $rawDimensionValues = $nodeDataRecord->getDimensionValues();
         foreach ($this->contentDimensionSource->getContentDimensionsOrderedByPriority() as $contentDimensionIdentifier => $contentDimension) {
-            if ($contentDimensionIdentifier === '_workspace') {
-                $coordinates['_workspace'] = $nodeDataRecord->getWorkspace() ? $nodeDataRecord->getWorkspace()->getName() : '_';
+            if ($contentDimensionIdentifier === LegacyConfigurationAndWorkspaceBasedContentDimensionSource::WORKSPACE_DIMENSION_IDENTIFIER) {
+                $coordinates[LegacyConfigurationAndWorkspaceBasedContentDimensionSource::WORKSPACE_DIMENSION_IDENTIFIER] = $nodeDataRecord->getWorkspace() ? $nodeDataRecord->getWorkspace()->getName() : '_';
             } else {
                 $coordinates[$contentDimensionIdentifier] = isset($rawDimensionValues[$contentDimensionIdentifier]) ? reset($rawDimensionValues[$contentDimensionIdentifier]) : '_';
             }

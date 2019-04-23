@@ -1,22 +1,25 @@
 <?php
-namespace Neos\ContentRepository\InMemoryGraph;
+namespace Neos\ContentRepository\InMemoryGraph\ContentSubgraph;
 
 /*
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
  */
 
+use Neos\ContentRepository\InMemoryGraph\NodeAggregate\Node;
+use Neos\ContentRepository\InMemoryGraph\NodeAggregate\NodeAggregate;
+
 /**
- * The ReferenceEdge domain entity
+ * The reference relation domain entity
  */
-final class ReferenceEdge
+final class ReferenceRelation
 {
     /**
-     * @var ReadOnlyNode
+     * @var Node
      */
     protected $source;
 
     /**
-     * @var ReadOnlyNodeAggregate
+     * @var NodeAggregate
      */
     protected $target;
 
@@ -48,8 +51,8 @@ final class ReferenceEdge
     /**
      * ReferenceEdge constructor.
      *
-     * @param ReadOnlyNode $source
-     * @param ReadOnlyNodeAggregate $target
+     * @param Node $source
+     * @param NodeAggregate $target
      * @param ContentSubgraph $subgraph
      * @param string $subgraphHash
      * @param string $position
@@ -57,8 +60,8 @@ final class ReferenceEdge
      * @param array $properties
      */
     public function __construct(
-        ReadOnlyNode $source,
-        ReadOnlyNodeAggregate $target,
+        Node $source,
+        NodeAggregate $target,
         int $position = 0,
         string $name = null,
         array $properties = []
@@ -71,17 +74,17 @@ final class ReferenceEdge
     }
 
     /**
-     * @return ReadOnlyNode
+     * @return Node
      */
-    public function getSource(): ReadOnlyNode
+    public function getSource(): Node
     {
         return $this->source;
     }
 
     /**
-     * @return ReadOnlyNodeAggregate
+     * @return NodeAggregate
      */
-    public function getTarget(): ReadOnlyNodeAggregate
+    public function getTarget(): NodeAggregate
     {
         return $this->target;
     }

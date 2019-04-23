@@ -17,6 +17,8 @@ use Neos\Flow\Security;
  */
 class LegacyConfigurationAndWorkspaceBasedContentDimensionSource implements Dimension\ContentDimensionSourceInterface
 {
+    const WORKSPACE_DIMENSION_IDENTIFIER = '_workspace';
+
     /**
      * @var array|Dimension\ContentDimension[]
      */
@@ -87,11 +89,11 @@ class LegacyConfigurationAndWorkspaceBasedContentDimensionSource implements Dime
         foreach ($generalizationIdentifiers as $generalizationIdentifier => $specializationIdentifier) {
             $variationEdges[] = new Dimension\ContentDimensionValueVariationEdge($dimensionValues[$generalizationIdentifier], $dimensionValues[$specializationIdentifier]);
         }
-        if (isset($this->dimensions['_workspace'])) {
-            throw new DimensionIdentifierIsConflicting('Dimension identifier "_workspace" required for variation calculation but already occupied', 1532071326);
+        if (isset($this->dimensions[self::WORKSPACE_DIMENSION_IDENTIFIER])) {
+            throw new DimensionIdentifierIsConflicting('Dimension identifier "' . self::WORKSPACE_DIMENSION_IDENTIFIER . '" required for variation calculation but already occupied', 1532071326);
         }
-        $this->dimensions['_workspace'] = new Dimension\ContentDimension(
-            new Dimension\ContentDimensionIdentifier('_workspace'),
+        $this->dimensions[self::WORKSPACE_DIMENSION_IDENTIFIER] = new Dimension\ContentDimension(
+            new Dimension\ContentDimensionIdentifier(self::WORKSPACE_DIMENSION_IDENTIFIER),
             $dimensionValues,
             $defaultValue,
             $variationEdges
