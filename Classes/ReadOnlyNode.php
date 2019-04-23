@@ -7,10 +7,11 @@ namespace Neos\ContentRepository\InMemoryGraph;
 /*
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
  */
-
-use Neos\ContentRepository\DimensionSpace\DimensionSpace;
+use Neos\ContentRepository\DimensionSpace\DimensionSpace\DimensionSpacePoint;
 use Neos\ContentRepository\Domain as ContentRepository;
 use Neos\ContentRepository\Domain\Utility\NodePaths;
+use Neos\ContentRepository\Exception\NodeException;
+use Neos\ContentRepository\Exception\NodeTypeNotFoundException;
 
 /**
  * A read only node implementation
@@ -26,7 +27,6 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
      * @var ContentRepository\Model\NodeData
      */
     protected $nodeData;
-
     /**
      * @var array|Edge[]
      */
@@ -38,7 +38,17 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
     protected $incomingEdges = [];
 
     /**
-     * @var DimensionSpace\DimensionSpacePoint
+     * @var array|ReferenceEdge[]
+     */
+    protected $incomingReferenceEdges = [];
+
+    /**
+     * @var array|ReferenceEdge[]
+     */
+    protected $outgoingReferenceEdges = [];
+
+    /**
+     * @var DimensionSpacePoint
      */
     protected $dimensionSpacePoint;
 
@@ -47,46 +57,32 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
      */
     protected $contentSubgraphIdentifier;
 
-    /**
-     * @param ContentRepository\Model\NodeData $nodeData
-     * @param string $nodeIdentifier
-     * @param DimensionSpace\DimensionSpacePoint $dimensionSpacePoint
-     */
-    public function __construct(ContentRepository\Model\NodeData $nodeData, string $nodeIdentifier, DimensionSpace\DimensionSpacePoint $dimensionSpacePoint)
-    {
+    public function __construct(
+        ContentRepository\Model\NodeData $nodeData,
+        string $nodeIdentifier,
+        DimensionSpacePoint $dimensionSpacePoint
+    ) {
         $this->nodeData = $nodeData;
         $this->nodeIdentifier = $nodeIdentifier;
         $this->dimensionSpacePoint = $dimensionSpacePoint;
         $this->contentSubgraphIdentifier = new ContentSubgraphIdentifier($nodeData->getWorkspace() ? $nodeData->getWorkspace()->getName() : '', $this->dimensionSpacePoint);
     }
 
-    /**
-     * @return string
-     */
     public function getIdentifier(): string
     {
         return $this->nodeData->getIdentifier();
     }
 
-    /**
-     * @return string
-     */
     public function getNodeIdentifier(): string
     {
         return $this->nodeIdentifier;
     }
 
-    /**
-     * @return DimensionSpace\DimensionSpacePoint
-     */
-    public function getDimensionSpacePoint(): DimensionSpace\DimensionSpacePoint
+    public function getDimensionSpacePoint(): DimensionSpacePoint
     {
         return $this->dimensionSpacePoint;
     }
 
-    /**
-     * @return ContentSubgraphIdentifier
-     */
     public function getContentSubgraphIdentifier(): ContentSubgraphIdentifier
     {
         return $this->contentSubgraphIdentifier;
@@ -94,7 +90,7 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @return array
-     * @throws \Neos\ContentRepository\Exception\NodeException
+     * @throws NodeException
      */
     public function getProperties(): array
     {
@@ -109,7 +105,7 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
     /**
      * @param string $propertyName
      * @return mixed|null
-     * @throws \Neos\ContentRepository\Exception\NodeException
+     * @throws NodeException
      */
     public function getProperty($propertyName)
     {
@@ -117,26 +113,125 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
     }
 
     /**
-     * @param string $newName
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @return array|Edge[]
      */
-    public function setName($newName): void
+    public function getOutgoingEdges()
     {
-        throw new NodeOperationIsNotSupportedException();
+        $outgoingEdges = [];
+        foreach ($this->outgoingEdges as $subgraphHash => $edges) {
+            foreach ($edges as $edge) {
+                /** @var Edge $edge */
+                $outgoingEdges[$edge->getNameForGraph()] = $edge;
+            }
+        }
+
+        return $outgoingEdges;
     }
 
     /**
-     * @return string
+     * @param ContentSubgraphIdentifier $subgraphIdentifier
+     * @return array|Edge[]
      */
+    public function getOutgoingEdgesInSubgraph(ContentSubgraphIdentifier $subgraphIdentifier)
+    {
+        return $this->outgoingEdges[(string) $subgraphIdentifier] ?? [];
+    }
+
+    /**
+     * @param Edge $edge
+     * @return void
+     * @todo handle edge identity: force name? how to update?
+     */
+    public function registerOutgoingEdge(Edge $edge)
+    {
+        $this->outgoingEdges[$edge->getSubgraphHash()][$edge->getLocalIdentifier()] = $edge;
+    }
+
+    /**
+     * @param Edge $edge
+     * @return void
+     * @todo handle edge identity: force name? how to update?
+     */
+    public function unregisterOutgoingEdge(Edge $edge)
+    {
+        if (isset($this->outgoingEdges[(string) $edge->getSubgraph()->getIdentifier()][$edge->getLocalIdentifier()])) {
+            unset($this->outgoingEdges[(string) $edge->getSubgraph()->getIdentifier()][$edge->getLocalIdentifier()]);
+        }
+    }
+
+    /**
+     * @return array|Edge[]
+     */
+    public function getIncomingEdges(): array
+    {
+        return $this->incomingEdges;
+    }
+
+    public function getIncomingEdgeInSubgraph(ContentSubgraphIdentifier $contentSubgraphIdentifier): ?Edge
+    {
+        return $this->incomingEdges[(string) $contentSubgraphIdentifier] ?? null;
+    }
+
+    public function registerIncomingEdge(Edge $edge)
+    {
+        $this->incomingEdges[$edge->getSubgraphHash()] = $edge;
+    }
+
+    public function unregisterIncomingEdge(Edge $edge)
+    {
+        if (isset($this->incomingEdges[(string) $edge->getSubgraph()->getIdentifier()])) {
+            unset($this->incomingEdges[(string) $edge->getSubgraph()->getIdentifier()]);
+        }
+    }
+
+    /**
+     * @return array|ReferenceEdge[]
+     */
+    public function getIncomingReferenceEdges(): array
+    {
+        return $this->incomingReferenceEdges;
+    }
+
+    /**
+     * @param ReferenceEdge $referenceEdge
+     * @return void
+     */
+    public function registerIncomingReferenceEdge(ReferenceEdge $referenceEdge)
+    {
+        $this->incomingReferenceEdges[] = $referenceEdge;
+    }
+
+    /**
+     * @return array|ReferenceEdge[]
+     */
+    public function getOutgoingReferenceEdges(): array
+    {
+        return $this->outgoingReferenceEdges;
+    }
+
+    /**
+     * @param ReferenceEdge $referenceEdge
+     * @return
+     */
+    public function registerOutgoingReferenceEdge(ReferenceEdge $referenceEdge)
+    {
+        $this->outgoingReferenceEdges[] = $referenceEdge;
+    }
+
+    /**
+     * @param string $newName
+     * @throws NodeOperationIsNotSupported
+     */
+    public function setName($newName): void
+    {
+        throw new NodeOperationIsNotSupported();
+    }
+
     public function getName(): string
     {
         return $this->nodeData->getName();
     }
 
-    /**
-     * @return string
-     */
     public function getLabel(): string
     {
         return $this->getNodeType()->getNodeLabelGenerator()->getLabel($this) ?? '';
@@ -145,18 +240,13 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
     /**
      * @param string $propertyName
      * @param mixed $value
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
     public function setProperty($propertyName, $value): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
-    /**
-     * @param string $propertyName
-     * @return bool
-     */
     public function hasProperty($propertyName): bool
     {
         return $this->nodeData->hasProperty($propertyName);
@@ -164,12 +254,11 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param string $propertyName
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
     public function removeProperty($propertyName): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
@@ -182,44 +271,42 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param \object $contentObject
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
     public function setContentObject($contentObject): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @return \object|void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
-    public function getContentObject()
+    public function getContentObject(): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
     public function unsetContentObject(): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param ContentRepository\Model\NodeType $nodeType
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
     public function setNodeType(ContentRepository\Model\NodeType $nodeType): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @return ContentRepository\Model\NodeType
+     * @throws NodeTypeNotFoundException
      */
     public function getNodeType(): ContentRepository\Model\NodeType
     {
@@ -228,63 +315,50 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param bool $hidden
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
     public function setHidden($hidden): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
-    /**
-     * @return bool
-     */
     public function isHidden(): bool
     {
         return $this->nodeData->isHidden();
     }
 
     /**
-     * @param \DateTime|null $dateTime
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @param \DateTimeInterface|null $dateTime
+     * @throws NodeOperationIsNotSupported
      */
-    public function setHiddenBeforeDateTime(\DateTime $dateTime = null): void
+    public function setHiddenBeforeDateTime(\DateTimeInterface $dateTime = null): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
-    /**
-     * @return \DateTimeInterface
-     */
-    public function getHiddenBeforeDateTime(): \DateTimeInterface
+    public function getHiddenBeforeDateTime(): ?\DateTimeInterface
     {
         return $this->nodeData->getHiddenBeforeDateTime();
     }
 
     /**
-     * @param \DateTime|null $dateTime
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @param \DateTimeInterface|null $dateTime
+     * @throws NodeOperationIsNotSupported
      */
-    public function setHiddenAfterDateTime(\DateTime $dateTime = null): void
+    public function setHiddenAfterDateTime(\DateTimeInterface $dateTime = null): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param bool $hidden
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
     public function setHiddenInIndex($hidden): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
-    /**
-     * @return bool
-     */
     public function isHiddenInIndex(): bool
     {
         return $this->nodeData->isHiddenInIndex();
@@ -292,33 +366,23 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param array $accessRoles
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
     public function setAccessRoles(array $accessRoles): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
-    /**
-     * @return array
-     */
     public function getAccessRoles(): array
     {
         return $this->nodeData->getAccessRoles();
     }
 
-    /**
-     * @return string
-     */
     public function getPath(): string
     {
         return $this->nodeData->getPath();
     }
 
-    /**
-     * @return string
-     */
     public function getContextPath(): string
     {
         if ($this->getWorkspace() !== null) {
@@ -334,26 +398,22 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @return int
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
     public function getDepth(): int
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param ContentRepository\Model\Workspace $workspace
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
     public function setWorkspace(ContentRepository\Model\Workspace $workspace): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
-    /**
-     * @return ContentRepository\Model\Workspace|null
-     */
     public function getWorkspace(): ?ContentRepository\Model\Workspace
     {
         return $this->nodeData->getWorkspace();
@@ -361,34 +421,27 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param int $index
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
     public function setIndex($index): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
-    /**
-     * @return int|null
-     */
     public function getIndex(): ?int
     {
         return $this->nodeData->getIndex();
     }
 
-    /**
-     * @return ContentRepository\Model\NodeInterface|null
-     * @throws NodeOperationIsNotSupportedException
-     */
-    public function getParent(): ?ContentRepository\Model\NodeInterface
+    public function getParent(): ?ContentRepository\Projection\Content\NodeInterface
     {
-        throw new NodeOperationIsNotSupportedException();
+        if ($edge = $this->getIncomingEdgeInSubgraph($this->contentSubgraphIdentifier)) {
+            return $edge->getParent();
+        }
+
+        return null;
     }
 
-    /**
-     * @return string
-     */
     public function getParentPath(): string
     {
         return $this->nodeData->getParentPath();
@@ -398,208 +451,202 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
      * @param string $name
      * @param ContentRepository\Model\NodeType|null $nodeType
      * @param null $identifier
-     * @return \Neos\ContentRepository\Domain\Model\Node
-     * @throws NodeOperationIsNotSupportedException
+     * @return \Neos\ContentRepository\Domain\Model\Node|void
+     * @throws NodeOperationIsNotSupported
      */
-    public function createNode($name, ContentRepository\Model\NodeType $nodeType = null, $identifier = null): ContentRepository\Model\Node
+    public function createNode($name, ContentRepository\Model\NodeType $nodeType = null, $identifier = null): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param string $name
      * @param ContentRepository\Model\NodeType|null $nodeType
      * @param null $identifier
-     * @return \Neos\ContentRepository\Domain\Model\Node
-     * @throws NodeOperationIsNotSupportedException
+     * @return \Neos\ContentRepository\Domain\Model\Node|void
+     * @throws NodeOperationIsNotSupported
      */
-    public function createSingleNode($name, ContentRepository\Model\NodeType $nodeType = null, $identifier = null): ContentRepository\Model\Node
+    public function createSingleNode($name, ContentRepository\Model\NodeType $nodeType = null, $identifier = null): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param ContentRepository\Model\NodeTemplate $nodeTemplate
      * @param string|null $nodeName
-     * @return ContentRepository\Model\NodeInterface
-     * @throws NodeOperationIsNotSupportedException
+     * @return ContentRepository\Model\NodeInterface|void
+     * @throws NodeOperationIsNotSupported
      */
-    public function createNodeFromTemplate(ContentRepository\Model\NodeTemplate $nodeTemplate, $nodeName = null): ContentRepository\Model\Node
+    public function createNodeFromTemplate(ContentRepository\Model\NodeTemplate $nodeTemplate, $nodeName = null): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
+    }
+
+    public function getNode($path): ?ContentRepository\Projection\Content\NodeInterface
+    {
+        $outgoingEdge = $this->getOutgoingEdgesInSubgraph($this->contentSubgraphIdentifier)[$path] ?? null;
+
+        if ($outgoingEdge) {
+            return $outgoingEdge->getChild();
+        }
+
+        return null;
     }
 
     /**
-     * @param string $path
-     * @return ContentRepository\Model\NodeInterface|void
-     * @throws NodeOperationIsNotSupportedException
+     * @return ContentRepository\Projection\Content\NodeInterface
+     * @throws NodeOperationIsNotSupported
      */
-    public function getNode($path): ?ContentRepository\Model\NodeInterface
+    public function getPrimaryChildNode(): ContentRepository\Projection\Content\NodeInterface
     {
-        throw new NodeOperationIsNotSupportedException();
-    }
-
-    /**
-     * @return ContentRepository\Model\NodeInterface|void
-     * @throws NodeOperationIsNotSupportedException
-     */
-    public function getPrimaryChildNode(): ?ContentRepository\Model\NodeInterface
-    {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param string $nodeTypeFilter
      * @param string $limit
      * @param string $offset
-     * @return array|ContentRepository\Model\NodeInterface[]
-     * @throws NodeOperationIsNotSupportedException
+     * @return array|ReadOnlyNode[]
      */
     public function getChildNodes($nodeTypeFilter = null, $limit = null, $offset = null): array
     {
-        throw new NodeOperationIsNotSupportedException();
+        $childNodes = [];
+        foreach ($this->getOutgoingEdgesInSubgraph($this->contentSubgraphIdentifier) as $outgoingEdge) {
+            $childNodes[$outgoingEdge->getChild()->getNodeIdentifier()] = $outgoingEdge->getChild();
+        }
+
+        return $childNodes;
     }
 
     /**
-     * @param string $nodeTypeFilter
-     * @return bool
-     * @throws NodeOperationIsNotSupportedException
+     * @param null $nodeTypeFilter
+     * @return bool|void
+     * @throws NodeOperationIsNotSupported
      */
     public function hasChildNodes($nodeTypeFilter = null): bool
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
     public function remove(): void
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param bool $removed
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
-    public function setRemoved($removed): void
+    public function setRemoved($removed)
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
-    /**
-     * @return bool
-     */
     public function isRemoved(): bool
     {
         return $this->nodeData->isRemoved();
     }
 
     /**
-     * @return bool
-     * @throws NodeOperationIsNotSupportedException
+     * @return bool|void
+     * @throws NodeOperationIsNotSupported
      */
     public function isVisible(): bool
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
-     * @return bool
-     * @throws NodeOperationIsNotSupportedException
+     * @return bool|void
+     * @throws NodeOperationIsNotSupported
      */
     public function isAccessible(): bool
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
-     * @return bool
-     * @throws NodeOperationIsNotSupportedException
+     * @return bool|void
+     * @throws NodeOperationIsNotSupported
      */
-    public function hasAccessRestrictions(): bool
+    public function hasAccessRestrictions()
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param ContentRepository\Model\NodeType $nodeType
-     * @return bool
-     * @throws NodeOperationIsNotSupportedException
+     * @return bool|void
+     * @throws NodeOperationIsNotSupported
      */
-    public function isNodeTypeAllowedAsChildNode(ContentRepository\Model\NodeType $nodeType): bool
+    public function isNodeTypeAllowedAsChildNode(ContentRepository\Model\NodeType $nodeType)
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param ContentRepository\Model\NodeInterface $referenceNode
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
-    public function moveBefore(ContentRepository\Model\NodeInterface $referenceNode): void
+    public function moveBefore(ContentRepository\Model\NodeInterface $referenceNode)
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param ContentRepository\Model\NodeInterface $referenceNode
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
-    public function moveAfter(ContentRepository\Model\NodeInterface $referenceNode): void
+    public function moveAfter(ContentRepository\Model\NodeInterface $referenceNode)
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param ContentRepository\Model\NodeInterface $referenceNode
-     * @return void
-     * @throws NodeOperationIsNotSupportedException
+     * @throws NodeOperationIsNotSupported
      */
-    public function moveInto(ContentRepository\Model\NodeInterface $referenceNode): void
+    public function moveInto(ContentRepository\Model\NodeInterface $referenceNode)
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param ContentRepository\Model\NodeInterface $referenceNode
      * @param string $nodeName
-     * @return ContentRepository\Model\NodeInterface
-     * @throws NodeOperationIsNotSupportedException
+     * @return ContentRepository\Model\NodeInterface|void
+     * @throws NodeOperationIsNotSupported
      */
-    public function copyBefore(ContentRepository\Model\NodeInterface $referenceNode, $nodeName): ContentRepository\Model\NodeInterface
+    public function copyBefore(ContentRepository\Model\NodeInterface $referenceNode, $nodeName)
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param ContentRepository\Model\NodeInterface $referenceNode
      * @param string $nodeName
-     * @return ContentRepository\Model\NodeInterface
-     * @throws NodeOperationIsNotSupportedException
+     * @return ContentRepository\Model\NodeInterface|void
+     * @throws NodeOperationIsNotSupported
      */
-    public function copyAfter(ContentRepository\Model\NodeInterface $referenceNode, $nodeName): ContentRepository\Model\NodeInterface
+    public function copyAfter(ContentRepository\Model\NodeInterface $referenceNode, $nodeName)
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
     /**
      * @param ContentRepository\Model\NodeInterface $referenceNode
      * @param string $nodeName
-     * @return ContentRepository\Model\NodeInterface
-     * @throws NodeOperationIsNotSupportedException
+     * @return ContentRepository\Model\NodeInterface|void
+     * @throws NodeOperationIsNotSupported
      */
-    public function copyInto(ContentRepository\Model\NodeInterface $referenceNode, $nodeName): ContentRepository\Model\NodeInterface
+    public function copyInto(ContentRepository\Model\NodeInterface $referenceNode, $nodeName)
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
-    /**
-     * @return ContentRepository\Model\NodeData
-     */
     public function getNodeData(): ContentRepository\Model\NodeData
     {
         return $this->nodeData;
@@ -622,9 +669,6 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
         );
     }
 
-    /**
-     * @return array
-     */
     public function getDimensions(): array
     {
         return $this->nodeData->getDimensionValues();
@@ -632,59 +676,48 @@ final class ReadOnlyNode implements ContentRepository\Model\NodeInterface
 
     /**
      * @param ContentRepository\Service\Context $context
-     * @return ContentRepository\Model\NodeInterface
-     * @throws NodeOperationIsNotSupportedException
+     * @return ContentRepository\Model\NodeInterface|void
+     * @throws NodeOperationIsNotSupported
      */
-    public function createVariantForContext($context): ContentRepository\Model\NodeInterface
+    public function createVariantForContext($context)
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
-    /**
-     * @return bool
-     * @throws NodeOperationIsNotSupportedException
-     */
     public function isAutoCreated(): bool
     {
-        throw new NodeOperationIsNotSupportedException();
+        $edge = $this->getIncomingEdgeInSubgraph($this->contentSubgraphIdentifier);
+        if ($edge) {
+            return isset($edge->getParent()->getNodeType()->getAutoCreatedChildNodes()[$edge->getName()]);
+        } else {
+            return false;
+        }
     }
 
     /**
-     * @return array|ContentRepository\Model\NodeInterface[]
-     * @throws NodeOperationIsNotSupportedException
+     * @return array
+     * @throws NodeOperationIsNotSupported
      */
     public function getOtherNodeVariants(): array
     {
-        throw new NodeOperationIsNotSupportedException();
+        throw new NodeOperationIsNotSupported();
     }
 
-    /**
-     * @return \DateTimeInterface|null
-     */
     public function getHiddenAfterDateTime(): ?\DateTimeInterface
     {
         return $this->nodeData->getHiddenAfterDateTime();
     }
 
-    /**
-     * @return \DateTimeInterface
-     */
     public function getCreationDateTime(): \DateTimeInterface
     {
         return $this->nodeData->getCreationDateTime();
     }
 
-    /**
-     * @return \DateTimeInterface
-     */
     public function getLastModificationDateTime(): \DateTimeInterface
     {
         return $this->nodeData->getLastModificationDateTime();
     }
 
-    /**
-     * @return \DateTimeInterface
-     */
     public function getLastPublicationDateTime(): \DateTimeInterface
     {
         return $this->nodeData->getLastPublicationDateTime();

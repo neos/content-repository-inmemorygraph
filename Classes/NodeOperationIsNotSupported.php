@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Neos\ContentRepository\InMemoryGraph;
 
 /*
@@ -11,6 +9,6 @@ namespace Neos\ContentRepository\InMemoryGraph;
 /**
  * An exception to be thrown if a node operation is not supported
  */
-class NodeOperationIsNotSupportedException extends \Exception
+class NodeOperationIsNotSupported extends \Exception
 {
 }

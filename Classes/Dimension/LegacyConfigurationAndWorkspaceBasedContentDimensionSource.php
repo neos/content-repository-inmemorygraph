@@ -32,19 +32,12 @@ class LegacyConfigurationAndWorkspaceBasedContentDimensionSource implements Dime
      */
     protected $workspaceRepository;
 
-    /**
-     * @param LegacyConfigurationBasedContentDimensionSource $baseContentDimensionSource
-     * @param ContentRepository\Repository\WorkspaceRepository $workspaceRepository
-     */
     public function __construct(LegacyConfigurationBasedContentDimensionSource $baseContentDimensionSource, ContentRepository\Repository\WorkspaceRepository $workspaceRepository)
     {
         $this->baseContentDimensionSource = $baseContentDimensionSource;
         $this->workspaceRepository = $workspaceRepository;
     }
 
-    /**
-     * @return void
-     */
     protected function initializeDimensions(): void
     {
         $this->dimensions = $this->baseContentDimensionSource->getContentDimensionsOrderedByPriority();
@@ -53,8 +46,7 @@ class LegacyConfigurationAndWorkspaceBasedContentDimensionSource implements Dime
         $variationEdges = [];
         $generalizationIdentifiers = [];
         $defaultValue = null;
-        $workspaces = $this->workspaceRepository->findAll();
-        foreach ($workspaces as $workspace) {
+        foreach ($this->workspaceRepository->findAll() as $workspace) {
             /** @var ContentRepository\Model\Workspace $workspace */
             if ($workspace->getOwner()) {
                 $continue = true;
@@ -96,7 +88,7 @@ class LegacyConfigurationAndWorkspaceBasedContentDimensionSource implements Dime
             $variationEdges[] = new Dimension\ContentDimensionValueVariationEdge($dimensionValues[$generalizationIdentifier], $dimensionValues[$specializationIdentifier]);
         }
         if (isset($this->dimensions['_workspace'])) {
-            throw new DimensionIdentifierIsConflictingException('Dimension identifier "_workspace" required for variation calculation but already occupied', 1532071326);
+            throw new DimensionIdentifierIsConflicting('Dimension identifier "_workspace" required for variation calculation but already occupied', 1532071326);
         }
         $this->dimensions['_workspace'] = new Dimension\ContentDimension(
             new Dimension\ContentDimensionIdentifier('_workspace'),

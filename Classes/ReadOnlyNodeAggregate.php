@@ -48,10 +48,6 @@ final class ReadOnlyNodeAggregate implements \Countable
         $this->addNodes($nodes);
     }
 
-    /**
-     * @param array|ReadOnlyNode[] $nodes
-     * @return void
-     */
     public function addNodes(array $nodes): void
     {
         foreach ($nodes as $node) {
@@ -73,10 +69,6 @@ final class ReadOnlyNodeAggregate implements \Countable
         }
     }
 
-    /**
-     * @param DimensionSpace\DimensionSpacePoint $dimensionSpacePoint
-     * @return void
-     */
     public function removeNode(DimensionSpace\DimensionSpacePoint $dimensionSpacePoint): void
     {
         if (isset($this->nodes[$dimensionSpacePoint->getHash()])) {
@@ -84,10 +76,6 @@ final class ReadOnlyNodeAggregate implements \Countable
         }
     }
 
-    /**
-     * @param DimensionSpace\DimensionSpacePoint $dimensionSpacePoint
-     * @return ReadOnlyNode|null
-     */
     public function getNodeByDimensionSpacePoint(DimensionSpace\DimensionSpacePoint $dimensionSpacePoint): ?ReadOnlyNode
     {
         return $this->nodes[$dimensionSpacePoint->getHash()] ?? null;
@@ -100,11 +88,6 @@ final class ReadOnlyNodeAggregate implements \Countable
     {
         return $this->shadowNodes;
     }
-
-    /**
-     * @param DimensionSpace\DimensionSpacePoint $dimensionSpacePoint
-     * @return ReadOnlyNode|null
-     */
     public function getShadowNodeByDimensionSpacePoint(DimensionSpace\DimensionSpacePoint $dimensionSpacePoint): ?ReadOnlyNode
     {
         return $this->shadowNodes[$dimensionSpacePoint->getHash()] ?? null;
@@ -142,33 +125,20 @@ final class ReadOnlyNodeAggregate implements \Countable
         return $this->nodes;
     }
 
-    /**
-     * @return string
-     */
     public function getIdentifier(): string
     {
         return $this->identifier;
     }
 
-    /**
-     * @return bool
-     */
     public function isRoot(): bool
     {
         return $this->identifier === self::ROOT_IDENTIFIER;
     }
 
-    /**
-     * @return int
-     */
     public function count(): int
     {
         return count($this->nodes);
     }
-
-    /**
-     * @return bool
-     */
     public function isEmpty(): bool
     {
         return count($this->nodes) === 0;

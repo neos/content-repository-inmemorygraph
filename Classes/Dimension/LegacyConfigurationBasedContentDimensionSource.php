@@ -18,28 +18,20 @@ class LegacyConfigurationBasedContentDimensionSource implements Dimension\Conten
     /**
      * @var array|Dimension\ContentDimension[]
      */
-    protected $dimensions;
+    protected $dimensions = [];
 
     /**
      * @var array
      */
     protected $rawDimensionConfiguration;
 
-    /**
-     * @param array $rawDimensionConfiguration
-     */
     public function __construct(array $rawDimensionConfiguration)
     {
         $this->rawDimensionConfiguration = $rawDimensionConfiguration;
     }
 
-    /**
-     * @return void
-     */
     protected function initializeDimensions(): void
     {
-        $this->dimensions = [];
-
         foreach ($this->rawDimensionConfiguration as $rawContentDimensionIdentifier => $rawDimensionConfiguration) {
             $contentDimensionIdentifier = new Dimension\ContentDimensionIdentifier($rawContentDimensionIdentifier);
 

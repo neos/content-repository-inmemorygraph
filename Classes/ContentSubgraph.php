@@ -84,7 +84,7 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
 
         if (isset($this->pathIndex[$node->getParentPath()])) {
             $parentNode = $this->pathIndex[$node->getParentPath()];
-            $edge = new Edge($parentNode, $traversableNode, $this, $node->getIndex() ?: 0, $node->getName());
+            $edge = new Edge($parentNode, $traversableNode, $this, (string)$this->identifier, $node->getIndex() ?: 0, $node->getName());
             $this->parentEdges[$node->getIdentifier()] = $edge;
             $this->childEdges[$this->pathIndex[$node->getParentPath()]->getIdentifier()][$node->getName()] = $edge;
         } else {
@@ -98,7 +98,7 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
     }
 
     /**
-     * @param ReadOnlyNode $node
+     * @param ContentRepository\Model\NodeInterface $node
      * @return void
      */
     public function unregisterNode(ReadOnlyNode $node): void
@@ -160,11 +160,11 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
 
     /**
      * @param string $nodeIdentifier
-     * @return TraversableNode|null
+     * @return Node|null
      */
-    public function getNodeByNodeIdentifier(string $nodeIdentifier): ?TraversableNode
+    public function getNode($nodeIdentifier)
     {
-        return isset($this->readOnlyNodeIndex[$nodeIdentifier]) ? $this->getNodeByIdentifier($this->readOnlyNodeIndex[$nodeIdentifier]->getIdentifier()) : null;
+        return $this->nodeRegistry[$nodeIdentifier] ?? null;
     }
 
     /**
@@ -246,6 +246,15 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
     }
 
     /**
+     * @param Graph $graph
+     * @return void
+     */
+    public function setGraph(Graph $graph)
+    {
+        $this->graph = $graph;
+    }
+
+    /**
      * @return DimensionSpace\DimensionSpacePoint
      */
     public function getDimensionSpacePoint(): DimensionSpace\DimensionSpacePoint
@@ -262,49 +271,124 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
     }
 
     /**
-     * @return ContentSubgraphIdentifier
+     * @return Tree|null
      */
-    public function getIdentifier(): ContentSubgraphIdentifier
+    public function getFallback()
     {
-        return $this->identifier;
+        return $this->fallback;
     }
 
     /**
-     * @param callable $action
-     * @return void
+     * @return array|Tree[]
      */
-    public function traverse(callable $action): void
+    public function getVariants() : array
     {
-        $this->traverseNode($this->rootNode, $action);
+        return $this->variants;
     }
 
     /**
-     * @param TraversableNode $node
-     * @param callable $action
+     * @param Tree $tree
      * @return void
      */
-    protected function traverseNode(TraversableNode $node, callable $action): void
+    public function addVariant(Tree $tree)
     {
-        $continue = $action($node);
+        $this->variants[$tree->getIdentityHash()] = $tree;
+    }
 
+    /**
+     * @return Graph
+     */
+    public function getGraph() : Graph
+    {
+        return $this->graph;
+    }
+
+    /**
+     * @param Node $parent
+     * @param Node $child
+     * @param string $position
+     * @param string $name
+     * @param array $properties
+     * @return Edge
+     */
+    public function connectNodes(Node $parent, Node $child, $position = 'start', $name = null, array $properties = []) : Edge
+    {
+        $edge = new Edge($parent, $child, $this, $position, $name, $properties);
+        $parent->registerOutgoingEdge($edge);
+        $child->registerIncomingEdge($edge);
+
+        return $edge;
+    }
+
+    /**
+     * @param Edge $edge
+     * @return void
+     */
+    public function disconnectNodes(Edge $edge)
+    {
+        $edge->getParent()->unregisterOutgoingEdge($edge);
+        $edge->getChild()->unregisterIncomingEdge($edge);
+        unset($edge);
+    }
+
+    /**
+     * @param callable $nodeAction
+     * @param callable $edgeAction
+     * @return void
+     */
+    public function traverse(callable $nodeAction = null, callable $edgeAction = null)
+    {
+        $this->traverseNode($this->graph->getRootNode(), $nodeAction, $edgeAction);
+    }
+
+    /**
+     * @param Node $node
+     * @param callable $nodeAction
+     * @param callable $edgeAction
+     * @return void
+     */
+    protected function traverseNode(Node $node, callable $nodeAction = null, callable $edgeAction = null)
+    {
+        if ($nodeAction) {
+            $continue = $nodeAction($node);
+        } else {
+            $continue = true;
+        }
         if ($continue !== false) {
-            foreach ($this->getChildNodes($node) as $node) {
-                $this->traverseNode($node, $action);
+            foreach ($node->getOutgoingEdgesInTree($this) as $edge) {
+                $this->traverseEdge($edge, $edgeAction, $nodeAction);
             }
         }
     }
 
     /**
-     * @return string
+     * @param Edge $edge
+     * @param callable $edgeAction
+     * @param callable $nodeAction
+     * @return void
      */
-    public function __toString(): string
+    protected function traverseEdge(Edge $edge, callable $edgeAction = null, callable $nodeAction = null)
     {
-        return (string)$this->getIdentifier();
+        if ($edgeAction) {
+            $continue = $edgeAction($edge);
+        } else {
+            $continue = true;
+        }
+        if ($continue !== false) {
+            $this->traverseNode($edge->getChild(), $nodeAction, $edgeAction);
+        }
     }
 
-    /**
-     * @return ContentSubgraphIdentifier
-     */
+    public function getIdentifier(): ContentSubgraphIdentifier
+    {
+        return $this->identifier;
+    }
+
+    public function __toString() : string
+    {
+        return (string) $this->getIdentifier();
+    }
+
     public function jsonSerialize(): ContentSubgraphIdentifier
     {
         return $this->getIdentifier();

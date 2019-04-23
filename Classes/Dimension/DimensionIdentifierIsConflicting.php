@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Neos\ContentRepository\InMemoryGraph\Dimension;
 
 /*
@@ -11,6 +9,6 @@ namespace Neos\ContentRepository\InMemoryGraph\Dimension;
 /**
  * The exception to be thrown
  */
-class DimensionIdentifierIsConflictingException extends \DomainException
+class DimensionIdentifierIsConflicting extends \DomainException
 {
 }

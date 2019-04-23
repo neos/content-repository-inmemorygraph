@@ -7,11 +7,10 @@ namespace Neos\ContentRepository\InMemoryGraph;
 /*
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
  */
-
-use Neos\ContentRepository\DimensionSpace\Dimension;
+use Neos\Flow\Annotations as Flow;
+use Neos\ContentRepository\DimensionSpace\Dimension\ContentDimensionIdentifier;
 use Neos\ContentRepository\DimensionSpace\DimensionSpace;
 use Neos\ContentRepository\Domain as ContentRepository;
-use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\ConsoleOutput;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\Persistence\QueryResultInterface;
@@ -52,7 +51,7 @@ final class GraphService
     protected $indexedWorkspaces;
 
     /**
-     * @var Dimension\ContentDimensionIdentifier
+     * @var ContentDimensionIdentifier
      */
     protected $workspaceDimensionIdentifier;
 
@@ -60,20 +59,12 @@ final class GraphService
      * @var array|string[]
      */
     protected $systemNodeIdentifiers;
-
     /**
      * @Flow\Inject
      * @var DimensionSpacePointFactory
      */
     protected $dimensionSpacePointFactory;
 
-    /**
-     * @param DimensionSpace\InterDimensionalVariationGraph $variationGraph
-     * @param DimensionSpace\ContentDimensionZookeeper $contentDimensionZookeeper
-     * @param ContentRepository\Repository\WorkspaceRepository $workspaceRepository
-     * @param ContentRepository\Repository\NodeDataRepository $nodeDataRepository
-     * @param PersistenceManagerInterface $persistenceManager
-     */
     public function __construct(
         DimensionSpace\InterDimensionalVariationGraph $variationGraph,
         DimensionSpace\ContentDimensionZookeeper $contentDimensionZookeeper,
@@ -86,14 +77,17 @@ final class GraphService
         $this->workspaceRepository = $workspaceRepository;
         $this->nodeDataRepository = $nodeDataRepository;
         $this->persistenceManager = $persistenceManager;
-        $this->workspaceDimensionIdentifier = new Dimension\ContentDimensionIdentifier('_workspace');
+        $this->workspaceDimensionIdentifier = new ContentDimensionIdentifier('_workspace');
     }
 
-    /**
-     * @param ConsoleOutput|null $output
-     * @return ContentGraph
-     */
     public function getContentGraph(ConsoleOutput $output = null): ContentGraph
+    {
+        $nodeDataRecords = $this->fetchNodeDataRecords();
+
+        return $this->getContentGraphForNodeDataRecords($nodeDataRecords, $output);
+    }
+
+    public function getContentGraphForNodeDataRecords($nodeDataRecords, ConsoleOutput $output = null): ContentGraph
     {
         $start = microtime(true);
 
@@ -104,19 +98,18 @@ final class GraphService
         if ($output) {
             $output->outputLine('Initializing subgraphs...');
         }
+
         $subgraphs = $this->getSubgraphs();
         if ($output) {
             $output->outputLine('Initialized ' . count($subgraphs) . ' subgraphs after ' . (microtime(true) - $start));
         }
+        $this->variationGraph->getRootGeneralizations();
 
         $nodes = [];
-        $numberOfNodeDataRecords = $this->nodeDataRepository->countAll();
-        $nodeDataRecords = $this->fetchNodeDataRecords();
         if ($output) {
             $output->outputLine('Initializing nodes...');
-            $output->progressStart($numberOfNodeDataRecords);
+            $output->progressStart($nodeDataRecords->count());
         }
-
         foreach ($nodeDataRecords as $nodeDataRecord) {
             $nodeIdentifier = $this->persistenceManager->getIdentifierByObject($nodeDataRecord);
             $dimensionSpacePoint = $this->dimensionSpacePointFactory->createFromNodeData($nodeDataRecord);
@@ -128,7 +121,6 @@ final class GraphService
         }
         if ($output) {
             $output->progressFinish();
-            $output->outputLine();
             $output->outputLine('Initialized nodes after ' . (microtime(true) - $start));
         }
 
@@ -145,7 +137,6 @@ final class GraphService
             $output->outputLine('Initialized graph after ' . (microtime(true) - $start));
             $output->outputLine('Memory used: %4.2fMB', [memory_get_peak_usage(true) / 1048576]);
         }
-
         return $result;
     }
 
@@ -171,11 +162,10 @@ final class GraphService
     protected function fetchNodeDataRecords(): QueryResultInterface
     {
         $query = $this->nodeDataRepository->createQuery();
-        $query
-            ->setOrderings([
-                'path' => 'ASC',
-                'workspace' => 'ASC'
-            ]);
+        $query->setOrderings([
+            'path' => 'ASC',
+            'workspace' => 'ASC'
+        ]);
 
         return $query->execute();
     }
@@ -220,17 +210,16 @@ final class GraphService
     }
 
     /**
-     * Assigns nodes to subgraphs
-     *
      * @param array|ReadOnlyNodeAggregate[] $aggregates
      * @param array|ContentSubgraph[] $subgraphs
      * @param ConsoleOutput|null $output
-     * @return void
+     * @return NodeAssignmentRegistry
      */
-    protected function assignNodesToSubgraphs(array $aggregates, array $subgraphs, ConsoleOutput $output = null): void
+    protected function determineNodeAssignments(array $aggregates, array $subgraphs, ConsoleOutput $output = null): NodeAssignmentRegistry
     {
+        $nodeAssignmentRegistry = new NodeAssignmentRegistry();
+
         if ($output) {
-            $output->outputLine('Assigning nodes to subgraphs');
             $output->progressStart(count($aggregates));
         }
         foreach ($aggregates as $aggregateIdentifier => $aggregate) {
@@ -241,9 +230,17 @@ final class GraphService
                     $aggregate
                 );
                 if ($node) {
-                    $subgraph->registerNode($node);
-                } else {
-                    // orphaned node
+                    $path = $node->getPath();
+                    $nodeAssignmentRegistry->registerNodeByPathAndSubgraphIdentifier(
+                        $path,
+                        $subgraph->getIdentifier(),
+                        $node
+                    );
+                    $nodeAssignmentRegistry->registerSubgraphIdentifierByPathAndNodeIdentifier(
+                        $path,
+                        $node->getNodeIdentifier(),
+                        $subgraph->getIdentifier()
+                    );
                 }
             }
             if ($output) {
@@ -252,16 +249,11 @@ final class GraphService
         }
         if ($output) {
             $output->progressFinish();
-            $output->outputLine();
         }
+
+        return $nodeAssignmentRegistry;
     }
 
-    /**
-     * @param ContentRepository\Model\Workspace $workspace
-     * @param DimensionSpace\DimensionSpacePoint $dimensionSpacePoint
-     * @param ReadOnlyNodeAggregate $nodeAggregate
-     * @return ReadOnlyNode|null
-     */
     protected function findBestSuitedNodeForSubgraph(
         ContentRepository\Model\Workspace $workspace,
         DimensionSpace\DimensionSpacePoint $dimensionSpacePoint,
@@ -290,10 +282,6 @@ final class GraphService
         return null;
     }
 
-    /**
-     * @param DimensionSpace\DimensionSpacePoint $dimensionSpacePoint
-     * @return ContentRepository\Model\Workspace|null
-     */
     protected function getWorkspaceForDimensionSpacePoint(DimensionSpace\DimensionSpacePoint $dimensionSpacePoint): ?ContentRepository\Model\Workspace
     {
         return $this->indexedWorkspaces[$dimensionSpacePoint->getCoordinate($this->workspaceDimensionIdentifier)] ?? null;

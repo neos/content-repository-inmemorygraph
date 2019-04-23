@@ -14,12 +14,12 @@ namespace Neos\ContentRepository\InMemoryGraph;
 final class Edge
 {
     /**
-     * @var TraversableNode
+     * @var ReadOnlyNode
      */
     protected $parent;
 
     /**
-     * @var TraversableNode
+     * @var ReadOnlyNode
      */
     protected $child;
 
@@ -34,7 +34,7 @@ final class Edge
     protected $subgraphHash;
 
     /**
-     * @var int
+     * @var string
      */
     protected $position;
 
@@ -50,24 +50,27 @@ final class Edge
 
     /**
      * Edge constructor.
-     *
-     * @param TraversableNode $parent
-     * @param TraversableNode $child
+     * @param ReadOnlyNode $parent
+     * @param ReadOnlyNode $child
      * @param ContentSubgraph $subgraph
-     * @param int $position
+     * @param string $subgraphHash
+     * @param string $position
      * @param string $name
      * @param array $properties
      */
-    public function __construct(TraversableNode $parent, TraversableNode $child, ContentSubgraph $subgraph, int $position = 0, string $name = null, array $properties = [])
+    public function __construct(ReadOnlyNode $parent, ReadOnlyNode $child, ContentSubgraph $subgraph, string $subgraphHash, $position = 'start', $name = null, array $properties = [])
     {
         $this->parent = $parent;
         $this->child = $child;
         $this->subgraph = $subgraph;
-        $this->subgraphHash = (string)$subgraph;
+        $this->subgraphHash = $subgraphHash;
         $this->position = $position;
         $this->name = $name;
         $this->properties = $properties;
+
+        $this->mergeStructurePropertiesWithParent();
     }
+
 
     /**
      * @return ContentSubgraph
@@ -86,42 +89,34 @@ final class Edge
     }
 
     /**
-     * @return TraversableNode
+     * @return ReadOnlyNode
      */
-    public function getParent(): TraversableNode
+    public function getParent():ReadOnlyNode
     {
         return $this->parent;
     }
-
     /**
-     * @return TraversableNode
+     * @return ReadOnlyNode
      */
-    public function getChild(): TraversableNode
+    public function getChild(): ReadOnlyNode
     {
         return $this->child;
     }
 
-    /**
-     * @param int $position
-     * @return void
-     */
-    public function setPosition(int $position)
+    public function setPosition(string $position): void
     {
         $this->position = $position;
     }
 
-    /**
-     * @return int
-     */
-    public function getPosition(): int
+    public function getPosition(): string
     {
         return $this->position;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    public function getName(): ?string
+    public function getName()
     {
         return $this->name;
     }
@@ -129,7 +124,7 @@ final class Edge
     /**
      * @return string
      */
-    public function getNameForGraph(): string
+    public function getNameForGraph()
     {
         return $this->getName() . '@' . $this->subgraphHash;
     }
@@ -137,26 +132,26 @@ final class Edge
     /**
      * @return array
      */
-    public function getProperties(): array
+    public function getProperties() : array
     {
         return $this->properties;
     }
 
     /**
-     * @param string $propertyName
+     * @param $propertyName
      * @return mixed|null
      */
-    public function getProperty(string $propertyName)
+    public function getProperty($propertyName)
     {
         return $this->properties[$propertyName] ?? null;
     }
 
     /**
-     * @param string $propertyName
-     * @param mixed $propertyValue
+     * @param $propertyName
+     * @param $propertyValue
      * @return void
      */
-    public function setProperty(string $propertyName, $propertyValue)
+    public function setProperty($propertyName, $propertyValue)
     {
         $this->properties[$propertyName] = $propertyValue;
     }
@@ -164,9 +159,9 @@ final class Edge
     /**
      * @return Edge|null
      */
-    public function getParentEdge(): ?Edge
+    public function getParentEdge()
     {
-        return $this->subgraph->getParentEdge($this->getParent());
+        return $this->getParent()->getIncomingEdgeInSubgraph($this->subgraph->getIdentifier());
     }
 
     /**
@@ -200,9 +195,6 @@ final class Edge
         $this->properties['hiddenInIndex'] = $this->getProperty('hiddenInIndex') || $this->getParentEdge()->getProperty('hiddenInIndex');
     }
 
-    /**
-     * @return string
-     */
     public function getLocalIdentifier(): string
     {
         return $this->getName() ?: $this->getChild()->getIdentifier();
