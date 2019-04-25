@@ -8,6 +8,9 @@ namespace Neos\ContentRepository\InMemoryGraph\ContentSubgraph;
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
  */
 
+use Neos\ContentRepository\DimensionSpace\DimensionSpace\DimensionSpacePoint;
+use Neos\ContentRepository\DimensionSpace\DimensionSpace\DimensionSpacePointSet;
+use Neos\ContentRepository\Domain\ContentStream\ContentStreamIdentifier;
 use Neos\ContentRepository\InMemoryGraph\NodeAggregate\Node;
 use Neos\ContentRepository\InMemoryGraph\NodeAggregate\NodeAggregate;
 use Neos\Flow\Cli\ConsoleOutput;
@@ -247,13 +250,10 @@ final class ContentGraph
         return $this->subgraphs;
     }
 
-    public function getSubgraphByIdentifier(ContentSubgraphIdentifier $contentSubgraphIdentifier): ?ContentSubgraph
+    public function getSubgraphByIdentifier(ContentStreamIdentifier $contentStreamIdentifier, DimensionSpacePoint $dimensionSpacePoint): ?ContentSubgraph
     {
-        return $this->getSubgraphByHash((string)$contentSubgraphIdentifier);
-    }
+        $index = (string)$contentStreamIdentifier . '-' . $dimensionSpacePoint->getHash();
 
-    public function getSubgraphByHash(string $hash): ?ContentSubgraph
-    {
-        return $this->subgraphs[$hash] ?? null;
+        return $this->subgraphs[$index] ?? null;
     }
 }
