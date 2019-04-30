@@ -16,3 +16,6 @@ Neos\ContentRepository\InMemoryGraph\Dimension\LegacyConfigurationBasedContentDi
   arguments:
     1:
       setting: Neos.ContentRepository.contentDimensions
+
+Neos\ContentRepository\InMemoryGraph\Dimension\LegacyConfigurationAndWorkspaceBasedContentDimensionSource:
+  scope: singleton

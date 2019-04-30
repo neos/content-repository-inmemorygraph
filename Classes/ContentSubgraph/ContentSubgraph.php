@@ -64,6 +64,11 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
     protected $childEdges = [];
 
     /**
+     * @var ContentGraph
+     */
+    protected $graph;
+
+    /**
      * @param ContentRepository\Model\Workspace $workspace
      * @param DimensionSpace\DimensionSpacePoint $dimensionSpacePoint
      */
@@ -75,7 +80,7 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
     }
 
     /**
-     * @param Node $node
+     * @param ContentRepository\Projection\Content\NodeInterface $node
      * @return void
      */
     public function registerNode(ContentRepository\Projection\Content\NodeInterface $node): void
@@ -98,10 +103,6 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
         }
     }
 
-    /**
-     * @param ContentRepository\Model\NodeInterface $node
-     * @return void
-     */
     public function unregisterNode(Node $node): void
     {
         if (isset($this->nodeIndex[(string) $node->getNodeAggregateIdentifier()])) {
@@ -125,11 +126,6 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
         }
     }
 
-    /**
-     * @param string $oldIdentifier
-     * @param string $newIdentifier
-     * @return void
-     */
     public function updateNodeAggregateIdentifier(string $oldIdentifier, string $newIdentifier): void
     {
         if (isset($this->traversableNodeIndex[$oldIdentifier])) {
@@ -185,13 +181,9 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
         return $this->traversableNodeIndex;
     }
 
-    /**
-     * @param TraversableNode $node
-     * @return TraversableNode|null
-     */
     public function getParentNode(TraversableNode $node): ?TraversableNode
     {
-        return isset($this->parentEdges[$node->getIdentifier()]) ? $this->parentEdges[$node->getIdentifier()]->getParent() : null;
+        return new TraversableNode($node->getDataNode()->getIncomingHierarchyRelationInSubgraph($this->identifier)->getParent(), $this);
     }
 
     /**
@@ -200,7 +192,7 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
      */
     public function getParentEdge(TraversableNode $node): ?HierarchyRelation
     {
-        return $this->parentEdges[$node->getIdentifier()] ?? null;
+        return $this->parentEdges[(string)$node->getNodeAggregateIdentifier()] ?? null;
     }
 
     /**
@@ -209,12 +201,12 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
      */
     public function getChildNodes(TraversableNode $node): array
     {
-        if (!isset($this->childEdges[$node->getIdentifier()])) {
+        if (!isset($this->childEdges[(string)$node->getNodeAggregateIdentifier()])) {
             return [];
         }
         return array_map(function (HierarchyRelation $edge) {
             return $edge->getChild();
-        }, $this->childEdges[$node->getIdentifier()]);
+        }, $this->childEdges[(string)$node->getNodeAggregateIdentifier()]);
     }
 
     /**
@@ -224,7 +216,7 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
      */
     public function getChildNode(TraversableNode $node, ContentRepository\NodeAggregate\NodeName $edgeName): ?TraversableNode
     {
-        return isset($this->childEdges[$node->getIdentifier()][(string)$edgeName]) ? $this->childEdges[$node->getIdentifier()][(string)$edgeName]->getChild() : null;
+        return isset($this->childEdges[(string)$node->getNodeAggregateIdentifier()][(string)$edgeName]) ? $this->childEdges[(string)$node->getNodeAggregateIdentifier()][(string)$edgeName]->getChild() : null;
     }
 
     /**
@@ -233,7 +225,7 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
      */
     public function getChildEdges(TraversableNode $node): array
     {
-        return $this->childEdges[$node->getIdentifier()] ?? [];
+        return $this->childEdges[(string)$node->getNodeAggregateIdentifier()] ?? [];
     }
 
     /**
@@ -243,93 +235,43 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
      */
     public function getChildEdge(TraversableNode $node, string $edgeName): ?HierarchyRelation
     {
-        return $this->childEdges[$node->getIdentifier()][$edgeName] ?? null;
+        return $this->childEdges[(string)$node->getNodeAggregateIdentifier()][$edgeName] ?? null;
     }
 
-    /**
-     * @param Graph $graph
-     * @return void
-     */
-    public function setGraph(Graph $graph)
+    public function setGraph(ContentGraph $graph): void
     {
         $this->graph = $graph;
     }
 
-    /**
-     * @return DimensionSpace\DimensionSpacePoint
-     */
     public function getDimensionSpacePoint(): DimensionSpace\DimensionSpacePoint
     {
         return $this->dimensionSpacePoint;
     }
 
-    /**
-     * @return ContentRepository\Model\Workspace
-     */
     public function getWorkspace(): ContentRepository\Model\Workspace
     {
         return $this->workspace;
     }
 
-    /**
-     * @return Tree|null
-     */
-    public function getFallback()
-    {
-        return $this->fallback;
-    }
-
-    /**
-     * @return array|Tree[]
-     */
-    public function getVariants() : array
-    {
-        return $this->variants;
-    }
-
-    /**
-     * @param Tree $tree
-     * @return void
-     */
-    public function addVariant(Tree $tree)
-    {
-        $this->variants[$tree->getIdentityHash()] = $tree;
-    }
-
-    /**
-     * @return Graph
-     */
-    public function getGraph() : Graph
+    public function getGraph() : ?ContentGraph
     {
         return $this->graph;
     }
 
-    /**
-     * @param Node $parent
-     * @param Node $child
-     * @param string $position
-     * @param string $name
-     * @param array $properties
-     * @return HierarchyRelation
-     */
-    public function connectNodes(Node $parent, Node $child, $position = 'start', $name = null, array $properties = []) : HierarchyRelation
+    public function connectNodes(Node $parent, Node $child, int $position, ContentRepository\NodeAggregate\NodeName $name = null, array $properties = []) : HierarchyRelation
     {
-        $edge = new HierarchyRelation($parent, $child, $this, $position, $name, $properties);
-        $parent->registerOutgoingEdge($edge);
-        $child->registerIncomingHierarchyRelation($edge);
+        $hierarchyRelation = new HierarchyRelation($parent, $child, $this, (string)$this->identifier, $position, $name, $properties);
+        $parent->registerOutgoingHierarchyRelation($hierarchyRelation);
+        $child->registerIncomingHierarchyRelation($hierarchyRelation);
 
-        return $edge;
+        return $hierarchyRelation;
     }
 
-    /**
-     * @param HierarchyRelation $edge
-     * @return void
-     */
-    public function disconnectNodes(HierarchyRelation $edge)
+    public function disconnectNodes(HierarchyRelation $hierarchyRelation)
     {
-        $edge->getParent()->unregisterOutgoingEdge($edge);
-        $edge->getChild()->unregisterIncomingRelation($edge);
-        unset($edge);
+        $hierarchyRelation->getParent()->unregisterOutgoingHierarchyRelation($hierarchyRelation);
+        $hierarchyRelation->getChild()->unregisterIncomingRelation($hierarchyRelation);
+        unset($hierarchyRelation);
     }
 
     /**
@@ -356,7 +298,7 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
             $continue = true;
         }
         if ($continue !== false) {
-            foreach ($node->getOutgoingEdgesInTree($this) as $edge) {
+            foreach ($node->getOutgoingHierarchyRelationsInSubgraph($this) as $edge) {
                 $this->traverseEdge($edge, $edgeAction, $nodeAction);
             }
         }

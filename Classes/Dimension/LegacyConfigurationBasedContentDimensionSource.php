@@ -18,7 +18,7 @@ class LegacyConfigurationBasedContentDimensionSource implements Dimension\Conten
     /**
      * @var array|Dimension\ContentDimension[]
      */
-    protected $dimensions = [];
+    protected $dimensions = null;
 
     /**
      * @var array

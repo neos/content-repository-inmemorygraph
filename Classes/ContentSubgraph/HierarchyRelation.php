@@ -37,7 +37,7 @@ final class HierarchyRelation
     protected $subgraphHash;
 
     /**
-     * @var string
+     * @var int
      */
     protected $position;
 
@@ -51,7 +51,7 @@ final class HierarchyRelation
      */
     protected $properties = [];
 
-    public function __construct(Node $parent, Node $child, ContentSubgraph $subgraph, string $subgraphHash, $position = 'start', NodeName $name = null, array $properties = [])
+    public function __construct(Node $parent, Node $child, ContentSubgraph $subgraph, string $subgraphHash, int $position, NodeName $name = null, array $properties = [])
     {
         $this->parent = $parent;
         $this->child = $child;
@@ -89,7 +89,7 @@ final class HierarchyRelation
         $this->position = $position;
     }
 
-    public function getPosition(): string
+    public function getPosition(): int
     {
         return $this->position;
     }

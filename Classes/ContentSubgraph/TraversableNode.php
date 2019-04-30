@@ -78,7 +78,7 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
         return $this->node->isHidden();
     }
 
-    public function getHiddenBeforeDateTime(): \DateTimeInterface
+    public function getHiddenBeforeDateTime(): ?\DateTimeInterface
     {
         return $this->node->getHiddenBeforeDateTime();
     }

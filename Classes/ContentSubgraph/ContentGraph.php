@@ -9,7 +9,6 @@ namespace Neos\ContentRepository\InMemoryGraph\ContentSubgraph;
  */
 
 use Neos\ContentRepository\DimensionSpace\DimensionSpace\DimensionSpacePoint;
-use Neos\ContentRepository\DimensionSpace\DimensionSpace\DimensionSpacePointSet;
 use Neos\ContentRepository\Domain\ContentStream\ContentStreamIdentifier;
 use Neos\ContentRepository\InMemoryGraph\NodeAggregate\Node;
 use Neos\ContentRepository\InMemoryGraph\NodeAggregate\NodeAggregate;
@@ -64,7 +63,7 @@ final class ContentGraph
                             $subgraphs[(string)$subgraphIdentifier],
                             (string)$subgraphIdentifier,
                             $node->getIndex(),
-                            $node->getName(),
+                            $node->getNodeName(),
                             [
                                 'accessRoles' => $node->getAccessRoles(),
                                 'hidden' => $node->isHidden(),
@@ -252,8 +251,8 @@ final class ContentGraph
 
     public function getSubgraphByIdentifier(ContentStreamIdentifier $contentStreamIdentifier, DimensionSpacePoint $dimensionSpacePoint): ?ContentSubgraph
     {
-        $index = (string)$contentStreamIdentifier . '-' . $dimensionSpacePoint->getHash();
+        $subgraphIdentifier = new ContentSubgraphIdentifier((string)$contentStreamIdentifier, $dimensionSpacePoint);
 
-        return $this->subgraphs[$index] ?? null;
+        return $this->subgraphs[(string)$subgraphIdentifier] ?? null;
     }
 }
