@@ -240,7 +240,7 @@ final class Node implements ContentRepository\Projection\Content\NodeInterface
             return NodePaths::generateContextPath(
                 $this->getPath(),
                 $this->getWorkspace()->getName(),
-                $this->nodeData->getDimensions()
+                $this->nodeData->getDimensionValues()
             );
         }
 

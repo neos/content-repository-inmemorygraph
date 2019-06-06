@@ -21,6 +21,7 @@ use Neos\ContentRepository\Domain\Projection\Content\TraversableNodes;
 use Neos\ContentRepository\Exception\NodeException;
 use Neos\ContentRepository\InMemoryGraph\NodeAggregate\Node;
 use Neos\EventSourcedContentRepository\Domain\ValueObject\PropertyName;
+use Neos\Neos\Domain\Service\ContentContext;
 
 /**
  * The traversable read only node implementation
@@ -155,11 +156,15 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
      */
     public function getContext(): ContentRepository\Service\Context
     {
-        return new ContentRepository\Service\Context(
+        $dimensions = $this->node->getDimensions();
+        unset($dimensions['_workspace']);
+        $targetDimensions = $this->node->getOriginDimensionSpacePoint()->getCoordinates();
+        unset($targetDimensions['_workspace']);
+        return new ContentContext(
             $this->node->getWorkspace()->getName(),
             new \DateTimeImmutable(),
-            $this->node->getDimensions(),
-            $this->node->getOriginDimensionSpacePoint()->getCoordinates(),
+            $dimensions,
+            $targetDimensions,
             true,
             true,
             true
