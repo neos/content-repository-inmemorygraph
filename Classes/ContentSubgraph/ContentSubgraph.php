@@ -183,7 +183,11 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
 
     public function getParentNode(TraversableNode $node): ?TraversableNode
     {
-        return new TraversableNode($node->getDataNode()->getIncomingHierarchyRelationInSubgraph($this->identifier)->getParent(), $this);
+        $incomingHierarchyRelation = $node->getDataNode()->getIncomingHierarchyRelationInSubgraph($this->identifier);
+        if ($incomingHierarchyRelation) {
+            return new TraversableNode($incomingHierarchyRelation->getParent(), $this);
+        }
+        return null;
     }
 
     /**

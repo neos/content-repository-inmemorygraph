@@ -263,7 +263,11 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
 
     public function findParentNode(): TraversableNodeInterface
     {
-        return $this->contentSubgraph->getParentNode($this);
+        $parentNode = $this->contentSubgraph->getParentNode($this);
+        if (!$parentNode) {
+            throw new NodeException('Parent node not found', 1542983610);
+        }
+        return $parentNode;
     }
 
     public function findNodePath(): NodePath
