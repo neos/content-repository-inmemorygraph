@@ -22,6 +22,7 @@ use Neos\ContentRepository\Exception\NodeException;
 use Neos\ContentRepository\InMemoryGraph\NodeAggregate\Node;
 use Neos\EventSourcedContentRepository\Domain\ValueObject\PropertyName;
 use Neos\Neos\Domain\Service\ContentContext;
+use Neos\EventSourcedContentRepository\Domain\Context\NodeAggregate\OriginDimensionSpacePoint;
 
 /**
  * The traversable read only node implementation
@@ -251,7 +252,7 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
         return $this->node->getNodeName();
     }
 
-    public function getOriginDimensionSpacePoint(): DimensionSpacePoint
+    public function getOriginDimensionSpacePoint(): OriginDimensionSpacePoint
     {
         return $this->node->getOriginDimensionSpacePoint();
     }
