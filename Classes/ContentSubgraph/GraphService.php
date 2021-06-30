@@ -15,6 +15,7 @@ use Neos\ContentRepository\InMemoryGraph\NodeAggregate\NodeAggregate;
 use Neos\ContentRepository\DimensionSpace\Dimension\ContentDimensionIdentifier;
 use Neos\ContentRepository\DimensionSpace\DimensionSpace;
 use Neos\ContentRepository\Domain as ContentRepository;
+use Neos\EventSourcedContentRepository\Domain\Context\NodeAggregate\OriginDimensionSpacePoint;
 use Neos\Flow\Cli\ConsoleOutput;
 use Neos\Flow\Persistence\QueryResultInterface;
 
@@ -110,7 +111,7 @@ final class GraphService
         }
         foreach ($nodeDataRecords as $nodeDataRecord) {
             $dimensionSpacePoint = $this->dimensionSpacePointFactory->createFromNodeData($nodeDataRecord);
-            $node = new Node($nodeDataRecord, $dimensionSpacePoint);
+            $node = new Node($nodeDataRecord, OriginDimensionSpacePoint::fromDimensionSpacePoint($dimensionSpacePoint));
             $nodes[$node->getCacheEntryIdentifier()] = $node;
 
             if ($output) {

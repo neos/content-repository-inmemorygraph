@@ -18,6 +18,7 @@ use Neos\ContentRepository\Exception\NodeException;
 use Neos\ContentRepository\InMemoryGraph\ContentSubgraph\ContentSubgraphIdentifier;
 use Neos\ContentRepository\InMemoryGraph\ContentSubgraph\HierarchyRelation;
 use Neos\ContentRepository\InMemoryGraph\ContentSubgraph\ReferenceRelation;
+use Neos\EventSourcedContentRepository\Domain\Context\NodeAggregate\OriginDimensionSpacePoint;
 
 /**
  * A node implementation
@@ -60,7 +61,7 @@ final class Node implements ContentRepository\Projection\Content\NodeInterface
 
     public function __construct(
         ContentRepository\Model\NodeData $nodeData,
-        DimensionSpacePoint $originDimensionSpacePoint
+        OriginDimensionSpacePoint $originDimensionSpacePoint
     ) {
         $this->nodeData = $nodeData;
         $this->nodeAggregateIdentifier = NodeAggregateIdentifier::fromString($nodeData->getIdentifier());
@@ -72,7 +73,7 @@ final class Node implements ContentRepository\Projection\Content\NodeInterface
         return $this->nodeAggregateIdentifier;
     }
 
-    public function getOriginDimensionSpacePoint(): DimensionSpacePoint
+    public function getOriginDimensionSpacePoint(): OriginDimensionSpacePoint
     {
         return $this->originDimensionSpacePoint;
     }

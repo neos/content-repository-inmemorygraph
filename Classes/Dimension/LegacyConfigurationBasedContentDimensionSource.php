@@ -32,6 +32,7 @@ class LegacyConfigurationBasedContentDimensionSource implements Dimension\Conten
 
     protected function initializeDimensions(): void
     {
+        $this->dimensions = [];
         foreach ($this->rawDimensionConfiguration as $rawContentDimensionIdentifier => $rawDimensionConfiguration) {
             $contentDimensionIdentifier = new Dimension\ContentDimensionIdentifier($rawContentDimensionIdentifier);
 

@@ -9,7 +9,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Neos\\ContentRepository\\InMemoryGraph\\": "Classes"
+            "Neos\\ContentRepository\\InMemoryGraph\\": "Classes",
+            "Neos\\EventSourcedContentRepository\\": "ESCRClasses"
         }
     },
     "extra": {

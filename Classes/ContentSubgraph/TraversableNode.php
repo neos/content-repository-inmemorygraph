@@ -12,21 +12,28 @@ use Neos\ContentRepository\DimensionSpace\DimensionSpace\DimensionSpacePoint;
 use Neos\ContentRepository\Domain as ContentRepository;
 use Neos\ContentRepository\Domain\ContentStream\ContentStreamIdentifier;
 use Neos\ContentRepository\Domain\ContentSubgraph\NodePath;
+use Neos\ContentRepository\Domain\Model\NodeInterface;
+use Neos\ContentRepository\Domain\Model\NodeTemplate;
+use Neos\ContentRepository\Domain\Model\NodeType;
+use Neos\ContentRepository\Domain\Model\Workspace;
 use Neos\ContentRepository\Domain\NodeAggregate\NodeAggregateIdentifier;
 use Neos\ContentRepository\Domain\NodeAggregate\NodeName;
 use Neos\ContentRepository\Domain\NodeType\NodeTypeConstraints;
 use Neos\ContentRepository\Domain\NodeType\NodeTypeName;
 use Neos\ContentRepository\Domain\Projection\Content\TraversableNodeInterface;
 use Neos\ContentRepository\Domain\Projection\Content\TraversableNodes;
+use Neos\ContentRepository\Domain\Service\Context;
 use Neos\ContentRepository\Exception\NodeException;
+use Neos\ContentRepository\Exception\NodeExistsException;
 use Neos\ContentRepository\InMemoryGraph\NodeAggregate\Node;
+use Neos\EventSourcedContentRepository\Domain\Context\NodeAggregate\OriginDimensionSpacePoint;
 use Neos\EventSourcedContentRepository\Domain\ValueObject\PropertyName;
 use Neos\Neos\Domain\Service\ContentContext;
 
 /**
  * The traversable read only node implementation
  */
-final class TraversableNode implements ContentRepository\Projection\Content\TraversableNodeInterface
+final class TraversableNode implements ContentRepository\Projection\Content\TraversableNodeInterface, ContentRepository\Model\NodeInterface
 {
     /**
      * @var Node
@@ -251,7 +258,7 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
         return $this->node->getNodeName();
     }
 
-    public function getOriginDimensionSpacePoint(): DimensionSpacePoint
+    public function getOriginDimensionSpacePoint(): OriginDimensionSpacePoint
     {
         return $this->node->getOriginDimensionSpacePoint();
     }
@@ -303,7 +310,7 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
         int $limit = null,
         int $offset = null
     ): TraversableNodes {
-        // TODO: Implement findChildNodes() method.
+        return TraversableNodes::fromArray($this->contentSubgraph->getChildNodes($this));
     }
 
     /**
@@ -368,5 +375,180 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
     public function equals(TraversableNodeInterface $other): bool
     {
         // TODO: Implement equals() method.
+    }
+
+    public function setName($newName)
+    {
+        // TODO: Implement setName() method.
+    }
+
+    public function getName()
+    {
+        // TODO: Implement getName() method.
+    }
+
+    public function setProperty($propertyName, $value)
+    {
+        // TODO: Implement setProperty() method.
+    }
+
+    public function removeProperty($propertyName)
+    {
+        // TODO: Implement removeProperty() method.
+    }
+
+    public function getPropertyNames()
+    {
+        // TODO: Implement getPropertyNames() method.
+    }
+
+    public function setContentObject($contentObject)
+    {
+        // TODO: Implement setContentObject() method.
+    }
+
+    public function getContentObject()
+    {
+        // TODO: Implement getContentObject() method.
+    }
+
+    public function unsetContentObject()
+    {
+        // TODO: Implement unsetContentObject() method.
+    }
+
+    public function setNodeType(NodeType $nodeType)
+    {
+        // TODO: Implement setNodeType() method.
+    }
+
+    public function setHidden($hidden)
+    {
+        // TODO: Implement setHidden() method.
+    }
+
+    public function setHiddenBeforeDateTime(\DateTimeInterface $dateTime = null)
+    {
+        // TODO: Implement setHiddenBeforeDateTime() method.
+    }
+
+    public function setHiddenAfterDateTime(\DateTimeInterface $dateTime = null)
+    {
+        // TODO: Implement setHiddenAfterDateTime() method.
+    }
+
+    public function setHiddenInIndex($hidden)
+    {
+        // TODO: Implement setHiddenInIndex() method.
+    }
+
+    public function setAccessRoles(array $accessRoles)
+    {
+        // TODO: Implement setAccessRoles() method.
+    }
+
+    public function getContextPath()
+    {
+        // TODO: Implement getContextPath() method.
+    }
+
+    public function setWorkspace(Workspace $workspace)
+    {
+        // TODO: Implement setWorkspace() method.
+    }
+
+    public function getIdentifier()
+    {
+        // TODO: Implement getIdentifier() method.
+    }
+
+    public function setIndex($index)
+    {
+        // TODO: Implement setIndex() method.
+    }
+
+    public function createNode($name, NodeType $nodeType = null, $identifier = null)
+    {
+        // TODO: Implement createNode() method.
+    }
+
+    public function createSingleNode($name, NodeType $nodeType = null, $identifier = null)
+    {
+        // TODO: Implement createSingleNode() method.
+    }
+
+    public function createNodeFromTemplate(NodeTemplate $nodeTemplate, $nodeName = null)
+    {
+        // TODO: Implement createNodeFromTemplate() method.
+    }
+
+    public function getPrimaryChildNode()
+    {
+        // TODO: Implement getPrimaryChildNode() method.
+    }
+
+    public function hasChildNodes($nodeTypeFilter = null)
+    {
+        // TODO: Implement hasChildNodes() method.
+    }
+
+    public function remove()
+    {
+        // TODO: Implement remove() method.
+    }
+
+    public function setRemoved($removed)
+    {
+        // TODO: Implement setRemoved() method.
+    }
+
+    public function isNodeTypeAllowedAsChildNode(NodeType $nodeType)
+    {
+        // TODO: Implement isNodeTypeAllowedAsChildNode() method.
+    }
+
+    public function moveBefore(NodeInterface $referenceNode)
+    {
+        // TODO: Implement moveBefore() method.
+    }
+
+    public function moveAfter(NodeInterface $referenceNode)
+    {
+        // TODO: Implement moveAfter() method.
+    }
+
+    public function moveInto(NodeInterface $referenceNode)
+    {
+        // TODO: Implement moveInto() method.
+    }
+
+    public function copyBefore(NodeInterface $referenceNode, $nodeName)
+    {
+        // TODO: Implement copyBefore() method.
+    }
+
+    public function copyAfter(NodeInterface $referenceNode, $nodeName)
+    {
+        // TODO: Implement copyAfter() method.
+    }
+
+    public function copyInto(NodeInterface $referenceNode, $nodeName)
+    {
+        // TODO: Implement copyInto() method.
+    }
+
+    public function createVariantForContext($context)
+    {
+        // TODO: Implement createVariantForContext() method.
+    }
+
+    public function isAutoCreated()
+    {
+        // TODO: Implement isAutoCreated() method.
+    }
+
+    public function getOtherNodeVariants()
+    {
+        // TODO: Implement getOtherNodeVariants() method.
     }
 }
