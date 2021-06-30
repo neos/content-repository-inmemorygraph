@@ -29,6 +29,7 @@ use Neos\ContentRepository\InMemoryGraph\NodeAggregate\Node;
 use Neos\EventSourcedContentRepository\Domain\Context\NodeAggregate\OriginDimensionSpacePoint;
 use Neos\EventSourcedContentRepository\Domain\ValueObject\PropertyName;
 use Neos\Neos\Domain\Service\ContentContext;
+use Neos\EventSourcedContentRepository\Domain\Context\NodeAggregate\OriginDimensionSpacePoint;
 
 /**
  * The traversable read only node implementation
