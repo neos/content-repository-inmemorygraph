@@ -17,7 +17,7 @@ use Neos\ContentRepository\InMemoryGraph\Dimension\LegacyConfigurationAndWorkspa
  */
 final class NodeAggregate implements \Countable
 {
-    const ROOT_IDENTIFIER = '00000000-0000-0000-0000-000000000000';
+    public const ROOT_IDENTIFIER = '00000000-0000-0000-0000-000000000000';
 
     /**
      * @var ContentRepository\NodeAggregate\NodeAggregateIdentifier

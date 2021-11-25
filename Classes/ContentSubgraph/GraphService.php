@@ -199,8 +199,9 @@ final class GraphService
                 $output->progressAdvance();
             }
         }
-        foreach ($nodesByAggregateIdentifier as $nodeAggregateIdentifier => $nodes) {
-            $aggregates[$nodeAggregateIdentifier] = new NodeAggregate(ContentRepository\NodeAggregate\NodeAggregateIdentifier::fromString($nodeAggregateIdentifier), $nodes);
+
+        foreach ($nodesByAggregateIdentifier as $nodeAggregateIdentifier => $nodesToAggregate) {
+            $aggregates[$nodeAggregateIdentifier] = new NodeAggregate(ContentRepository\NodeAggregate\NodeAggregateIdentifier::fromString($nodeAggregateIdentifier), $nodesToAggregate);
         }
         if ($output) {
             $output->progressFinish();
@@ -223,7 +224,7 @@ final class GraphService
         if ($output) {
             $output->progressStart(count($aggregates));
         }
-        foreach ($aggregates as $aggregateIdentifier => $aggregate) {
+        foreach ($aggregates as $aggregate) {
             foreach ($subgraphs as $subgraph) {
                 $node = $this->findBestSuitedNodeForSubgraph(
                     $subgraph->getWorkspace(),
@@ -263,7 +264,9 @@ final class GraphService
         if ($nodeAggregate->isRoot()) {
             $nodes = $nodeAggregate->getNodesByWorkspace($workspace);
             return reset($nodes);
-        } elseif (isset($this->systemNodeIdentifiers[(string)$nodeAggregate->getIdentifier()])) {
+        }
+
+        if (isset($this->systemNodeIdentifiers[(string)$nodeAggregate->getIdentifier()])) {
             $nodes = $nodeAggregate->getNodes();
             return reset($nodes);
         }
@@ -271,12 +274,12 @@ final class GraphService
         $node = $nodeAggregate->getNodeByDimensionSpacePoint($dimensionSpacePoint);
         if ($node) {
             return $node;
-        } else {
-            foreach ($this->variationGraph->getWeightedGeneralizations($dimensionSpacePoint) as $generalization) {
-                $node = $nodeAggregate->getNodeByDimensionSpacePoint($generalization);
-                if ($node) {
-                    return $node;
-                }
+        }
+
+        foreach ($this->variationGraph->getWeightedGeneralizations($dimensionSpacePoint) as $generalization) {
+            $node = $nodeAggregate->getNodeByDimensionSpacePoint($generalization);
+            if ($node) {
+                return $node;
             }
         }
 

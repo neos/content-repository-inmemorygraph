@@ -22,9 +22,7 @@ use Neos\ContentRepository\Domain\NodeType\NodeTypeConstraints;
 use Neos\ContentRepository\Domain\NodeType\NodeTypeName;
 use Neos\ContentRepository\Domain\Projection\Content\TraversableNodeInterface;
 use Neos\ContentRepository\Domain\Projection\Content\TraversableNodes;
-use Neos\ContentRepository\Domain\Service\Context;
 use Neos\ContentRepository\Exception\NodeException;
-use Neos\ContentRepository\Exception\NodeExistsException;
 use Neos\ContentRepository\InMemoryGraph\NodeAggregate\Node;
 use Neos\EventSourcedContentRepository\Domain\Context\NodeAggregate\OriginDimensionSpacePoint;
 use Neos\EventSourcedContentRepository\Domain\ValueObject\PropertyName;
@@ -377,7 +375,7 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
         // TODO: Implement equals() method.
     }
 
-    public function setName($newName)
+    public function setName($newName): void
     {
         // TODO: Implement setName() method.
     }
@@ -387,12 +385,12 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
         // TODO: Implement getName() method.
     }
 
-    public function setProperty($propertyName, $value)
+    public function setProperty($propertyName, $value): void
     {
         // TODO: Implement setProperty() method.
     }
 
-    public function removeProperty($propertyName)
+    public function removeProperty($propertyName): void
     {
         // TODO: Implement removeProperty() method.
     }
@@ -402,7 +400,7 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
         // TODO: Implement getPropertyNames() method.
     }
 
-    public function setContentObject($contentObject)
+    public function setContentObject($contentObject): void
     {
         // TODO: Implement setContentObject() method.
     }
@@ -412,37 +410,37 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
         // TODO: Implement getContentObject() method.
     }
 
-    public function unsetContentObject()
+    public function unsetContentObject(): void
     {
         // TODO: Implement unsetContentObject() method.
     }
 
-    public function setNodeType(NodeType $nodeType)
+    public function setNodeType(NodeType $nodeType): void
     {
         // TODO: Implement setNodeType() method.
     }
 
-    public function setHidden($hidden)
+    public function setHidden($hidden): void
     {
         // TODO: Implement setHidden() method.
     }
 
-    public function setHiddenBeforeDateTime(\DateTimeInterface $dateTime = null)
+    public function setHiddenBeforeDateTime(\DateTimeInterface $dateTime = null): void
     {
         // TODO: Implement setHiddenBeforeDateTime() method.
     }
 
-    public function setHiddenAfterDateTime(\DateTimeInterface $dateTime = null)
+    public function setHiddenAfterDateTime(\DateTimeInterface $dateTime = null): void
     {
         // TODO: Implement setHiddenAfterDateTime() method.
     }
 
-    public function setHiddenInIndex($hidden)
+    public function setHiddenInIndex($hidden): void
     {
         // TODO: Implement setHiddenInIndex() method.
     }
 
-    public function setAccessRoles(array $accessRoles)
+    public function setAccessRoles(array $accessRoles): void
     {
         // TODO: Implement setAccessRoles() method.
     }
@@ -452,7 +450,7 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
         // TODO: Implement getContextPath() method.
     }
 
-    public function setWorkspace(Workspace $workspace)
+    public function setWorkspace(Workspace $workspace): void
     {
         // TODO: Implement setWorkspace() method.
     }
@@ -462,7 +460,7 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
         // TODO: Implement getIdentifier() method.
     }
 
-    public function setIndex($index)
+    public function setIndex($index): void
     {
         // TODO: Implement setIndex() method.
     }
@@ -492,12 +490,12 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
         // TODO: Implement hasChildNodes() method.
     }
 
-    public function remove()
+    public function remove(): void
     {
         // TODO: Implement remove() method.
     }
 
-    public function setRemoved($removed)
+    public function setRemoved($removed): void
     {
         // TODO: Implement setRemoved() method.
     }
@@ -507,17 +505,17 @@ final class TraversableNode implements ContentRepository\Projection\Content\Trav
         // TODO: Implement isNodeTypeAllowedAsChildNode() method.
     }
 
-    public function moveBefore(NodeInterface $referenceNode)
+    public function moveBefore(NodeInterface $referenceNode): void
     {
         // TODO: Implement moveBefore() method.
     }
 
-    public function moveAfter(NodeInterface $referenceNode)
+    public function moveAfter(NodeInterface $referenceNode): void
     {
         // TODO: Implement moveAfter() method.
     }
 
-    public function moveInto(NodeInterface $referenceNode)
+    public function moveInto(NodeInterface $referenceNode): void
     {
         // TODO: Implement moveInto() method.
     }

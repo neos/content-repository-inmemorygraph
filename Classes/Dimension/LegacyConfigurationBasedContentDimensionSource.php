@@ -18,7 +18,7 @@ class LegacyConfigurationBasedContentDimensionSource implements Dimension\Conten
     /**
      * @var array|Dimension\ContentDimension[]
      */
-    protected $dimensions = null;
+    protected $dimensions;
 
     /**
      * @var array
@@ -85,7 +85,7 @@ class LegacyConfigurationBasedContentDimensionSource implements Dimension\Conten
                 );
             }
 
-            if (!isset($rawDimensionConfiguration['default']) || (!isset($contentDimensionValues[$rawDimensionConfiguration['default']]))) {
+            if (!isset($rawDimensionConfiguration['default'], $contentDimensionValues[$rawDimensionConfiguration['default']])) {
                 throw new Dimension\Exception\ContentDimensionDefaultValueIsMissing('Default value for dimension "' . $rawContentDimensionIdentifier . '"" is missing', 1531737067);
             }
             $defaultValue = $contentDimensionValues[$rawDimensionConfiguration['default']];
@@ -96,9 +96,7 @@ class LegacyConfigurationBasedContentDimensionSource implements Dimension\Conten
             }
 
             $dimensionsConfiguration = $rawDimensionConfiguration;
-            unset($dimensionsConfiguration['default']);
-            unset($dimensionsConfiguration['defaultPreset']);
-            unset($dimensionsConfiguration['presets']);
+            unset($dimensionsConfiguration['default'], $dimensionsConfiguration['defaultPreset'], $dimensionsConfiguration['presets']);
 
             $this->dimensions[$rawContentDimensionIdentifier] = new Dimension\ContentDimension(
                 $contentDimensionIdentifier,

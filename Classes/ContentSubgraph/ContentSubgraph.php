@@ -93,9 +93,7 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
             $edge = new HierarchyRelation($this->nodeIndex[(string)$traversableParentNode->getNodeAggregateIdentifier()], $node, $this, (string)$this->identifier, $node->getIndex() ?: 0, $node->getNodeName());
             $this->parentEdges[$node->getCacheEntryIdentifier()] = $edge;
             $this->childEdges[$this->pathIndex[$node->getParentPath()]->getIdentifier()][$node->getName()] = $edge;
-        } else {
-            // orphaned or root node, no edges to be assigned
-        }
+        } // else: orphaned or root node, no edges to be assigned
         $this->traversableNodeIndex[$traversableNode->getIdentifier()] = $traversableNode;
         $this->pathIndex[$node->getPath()] = $traversableNode;
         if ($node->getPath() === '/') {
@@ -208,7 +206,7 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
         if (!isset($this->childEdges[(string)$node->getNodeAggregateIdentifier()])) {
             return [];
         }
-        return array_map(function (HierarchyRelation $edge) {
+        return array_map(static function (HierarchyRelation $edge) {
             return $edge->getChild();
         }, $this->childEdges[(string)$node->getNodeAggregateIdentifier()]);
     }
@@ -271,11 +269,10 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
         return $hierarchyRelation;
     }
 
-    public function disconnectNodes(HierarchyRelation $hierarchyRelation)
+    public function disconnectNodes(HierarchyRelation $hierarchyRelation): void
     {
         $hierarchyRelation->getParent()->unregisterOutgoingHierarchyRelation($hierarchyRelation);
         $hierarchyRelation->getChild()->unregisterIncomingRelation($hierarchyRelation);
-        unset($hierarchyRelation);
     }
 
     /**
@@ -283,7 +280,7 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
      * @param callable $edgeAction
      * @return void
      */
-    public function traverse(callable $nodeAction = null, callable $edgeAction = null)
+    public function traverse(callable $nodeAction = null, callable $edgeAction = null): void
     {
         $this->traverseNode($this->graph->getRootNode(), $nodeAction, $edgeAction);
     }
@@ -294,7 +291,7 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
      * @param callable $edgeAction
      * @return void
      */
-    protected function traverseNode(Node $node, callable $nodeAction = null, callable $edgeAction = null)
+    protected function traverseNode(Node $node, callable $nodeAction = null, callable $edgeAction = null): void
     {
         if ($nodeAction) {
             $continue = $nodeAction($node);
@@ -314,7 +311,7 @@ final class ContentSubgraph implements \JsonSerializable, \Countable
      * @param callable $nodeAction
      * @return void
      */
-    protected function traverseEdge(HierarchyRelation $edge, callable $edgeAction = null, callable $nodeAction = null)
+    protected function traverseEdge(HierarchyRelation $edge, callable $edgeAction = null, callable $nodeAction = null): void
     {
         if ($edgeAction) {
             $continue = $edgeAction($edge);

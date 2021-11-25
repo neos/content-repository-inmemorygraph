@@ -17,7 +17,7 @@ use Neos\Flow\Security;
  */
 class LegacyConfigurationAndWorkspaceBasedContentDimensionSource implements Dimension\ContentDimensionSourceInterface
 {
-    const WORKSPACE_DIMENSION_IDENTIFIER = '_workspace';
+    public const WORKSPACE_DIMENSION_IDENTIFIER = '_workspace';
 
     /**
      * @var array|Dimension\ContentDimension[]
@@ -65,10 +65,8 @@ class LegacyConfigurationAndWorkspaceBasedContentDimensionSource implements Dime
                 if ($continue) {
                     continue;
                 }
-            } else {
-                if (\mb_substr($workspace->getName(), 0, 5) === 'user-') {
-                    continue;
-                }
+            } elseif (\mb_strpos($workspace->getName(), 'user-') === 0) {
+                continue;
             }
 
             /** @var ContentRepository\Model\Workspace $workspace */
@@ -79,10 +77,8 @@ class LegacyConfigurationAndWorkspaceBasedContentDimensionSource implements Dime
                 );
                 if ($workspace->getBaseWorkspace()) {
                     $generalizationIdentifiers[$workspace->getName()] = $workspace->getBaseWorkspace()->getName();
-                } else {
-                    if (!$defaultValue || $workspace->getName() === 'live') {
-                        $defaultValue = $dimensionValues[$workspace->getName()];
-                    }
+                } elseif (!$defaultValue || $workspace->getName() === 'live') {
+                    $defaultValue = $dimensionValues[$workspace->getName()];
                 }
             }
         }

@@ -6,7 +6,6 @@ namespace Neos\ContentRepository\InMemoryGraph\ContentSubgraph;
  * This file is part of the Neos.ContentRepository.InMemoryGraph package.
  */
 
-use Neos\ContentRepository\InMemoryGraph\ContentSubgraph\ContentSubgraphIdentifier;
 use Neos\ContentRepository\InMemoryGraph\NodeAggregate\Node;
 
 /**
@@ -26,7 +25,7 @@ final class NodeAssignmentRegistry
      */
     protected $subgraphsByPathAndNodeIdentifier;
 
-    public function registerNodeByPathAndSubgraphIdentifier(string $path, ContentSubgraphIdentifier $subgraphIdentifier, Node $node)
+    public function registerNodeByPathAndSubgraphIdentifier(string $path, ContentSubgraphIdentifier $subgraphIdentifier, Node $node): void
     {
         $this->nodesByPathAndSubgraph[$path][(string) $subgraphIdentifier] = $node;
     }
@@ -36,7 +35,7 @@ final class NodeAssignmentRegistry
         return $this->nodesByPathAndSubgraph[$path][(string) $subgraphIdentifier] ?? null;
     }
 
-    public function registerSubgraphIdentifierByPathAndNodeIdentifier(string $path, string $nodeIdentifier, ContentSubgraphIdentifier $contentSubgraphIdentifier)
+    public function registerSubgraphIdentifierByPathAndNodeIdentifier(string $path, string $nodeIdentifier, ContentSubgraphIdentifier $contentSubgraphIdentifier): void
     {
         $this->subgraphsByPathAndNodeIdentifier[$path][$nodeIdentifier][(string) $contentSubgraphIdentifier] = $contentSubgraphIdentifier;
     }

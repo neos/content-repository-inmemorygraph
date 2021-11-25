@@ -24,16 +24,6 @@ final class ReferenceRelation
     protected $target;
 
     /**
-     * @var ContentSubgraph
-     */
-    protected $subgraph;
-
-    /**
-     * @var string
-     */
-    protected $subgraphHash;
-
-    /**
      * @var int
      */
     protected $position;
@@ -127,7 +117,7 @@ final class ReferenceRelation
      * @param $propertyValue
      * @return void
      */
-    public function setProperty($propertyName, $propertyValue)
+    public function setProperty($propertyName, $propertyValue): void
     {
         $this->properties[$propertyName] = $propertyValue;
     }

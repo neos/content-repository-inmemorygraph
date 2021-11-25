@@ -163,6 +163,6 @@ final class HierarchyRelation
 
     public function getLocalIdentifier(): string
     {
-        return $this->getName() ? (string)$this->getNameForGraph() : (string)$this->getChild()->getNodeAggregateIdentifier();
+        return $this->getName() ? $this->getNameForGraph() : (string)$this->getChild()->getNodeAggregateIdentifier();
     }
 }

@@ -104,7 +104,7 @@ final class Node implements ContentRepository\Projection\Content\NodeInterface
     public function getOutgoingHierarchyRelations(): array
     {
         $outgoingHierarchyRelations = [];
-        foreach ($this->outgoingHierarchyRelations as $subgraphHash => $hierarchyRelations) {
+        foreach ($this->outgoingHierarchyRelations as $hierarchyRelations) {
             foreach ($hierarchyRelations as $hierarchyRelation) {
                 $outgoingHierarchyRelations[$hierarchyRelation->getNameForGraph()] = $hierarchyRelation;
             }
@@ -283,7 +283,7 @@ final class Node implements ContentRepository\Projection\Content\NodeInterface
         return $this->nodeData->isAccessible();
     }
 
-    public function hasAccessRestrictions()
+    public function hasAccessRestrictions(): bool
     {
         return $this->nodeData->hasAccessRestrictions();
     }
@@ -350,9 +350,9 @@ final class Node implements ContentRepository\Projection\Content\NodeInterface
         $hierarchyRelation = $this->getIncomingHierarchyRelationInSubgraph(new ContentSubgraphIdentifier($this->getWorkspace()->getName(), $this->originDimensionSpacePoint));
         if ($hierarchyRelation) {
             return isset($hierarchyRelation->getParent()->getNodeType()->getAutoCreatedChildNodes()[$hierarchyRelation->getName()]);
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     public function getContentStreamIdentifier(): ContentStreamIdentifier

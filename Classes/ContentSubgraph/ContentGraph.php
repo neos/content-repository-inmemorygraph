@@ -45,7 +45,6 @@ final class ContentGraph
     {
         $this->subgraphs = $subgraphs;
         $this->nodeAggregateIndex = $nodeAggregates;
-        $numberOfNodes = 0;
         $numberOfHierarchyRelations = 0;
 
         if ($output) {
@@ -84,7 +83,6 @@ final class ContentGraph
             if ($output) {
                 $output->progressAdvance();
             }
-            $numberOfNodes++;
         }
 
         if ($output) {
@@ -114,29 +112,25 @@ final class ContentGraph
         }
     }
 
-    public function createReferenceRelations(Node $sourceNode)
+    public function createReferenceRelations(Node $sourceNode): int
     {
         $numberOfReferenceRelations = 0;
         foreach ($sourceNode->getNodeType()->getProperties() as $referenceName => $propertyConfiguration) {
-            if (isset($propertyConfiguration['type'])) {
-                if (in_array($propertyConfiguration['type'], ['references', 'reference'])) {
-                    $propertyValue = $sourceNode->getNodeData()->getProperty($referenceName);
+            if (isset($propertyConfiguration['type']) && in_array($propertyConfiguration['type'], ['references', 'reference'])) {
+                $propertyValue = $sourceNode->getNodeData()->getProperty($referenceName);
 
-                    if (!$propertyValue) {
-                        $propertyValue = [];
-                    } else {
-                        if (!is_array($propertyValue)) {
-                            $propertyValue = [$propertyValue];
-                        }
-                    }
+                if (!$propertyValue) {
+                    $propertyValue = [];
+                } elseif (!is_array($propertyValue)) {
+                    $propertyValue = [$propertyValue];
+                }
 
-                    foreach ($propertyValue as $index => $targetNodeAggregateIdentifier) {
-                        $targetNodeAggregate = $this->getNodeAggregate($targetNodeAggregateIdentifier);
+                foreach ($propertyValue as $index => $targetNodeAggregateIdentifier) {
+                    $targetNodeAggregate = $this->getNodeAggregate($targetNodeAggregateIdentifier);
 
-                        if ($targetNodeAggregate) {
-                            $this->createSingleReferenceRelation($sourceNode, $referenceName, $index, $targetNodeAggregate);
-                            $numberOfReferenceRelations++;
-                        }
+                    if ($targetNodeAggregate) {
+                        $this->createSingleReferenceRelation($sourceNode, $referenceName, $index, $targetNodeAggregate);
+                        $numberOfReferenceRelations++;
                     }
                 }
             }
@@ -150,7 +144,7 @@ final class ContentGraph
         string $referenceName,
         int $index,
         NodeAggregate $targetNodeAggregate
-    ) {
+    ): void {
         $referenceRelation = new ReferenceRelation($sourceNode, $targetNodeAggregate, $index, $referenceName, []);
 
         $sourceNode->registerOutgoingReferenceRelation($referenceRelation);
