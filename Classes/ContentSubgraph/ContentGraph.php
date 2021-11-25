@@ -87,6 +87,7 @@ final class ContentGraph
 
         if ($output) {
             $output->progressFinish();
+            $output->outputLine();
             $output->outputLine('Successfully initialized content graph containing ' . count($this->nodeIndex) . ' nodes and ' . $numberOfHierarchyRelations . ' hierarchy relations.');
         }
 
@@ -108,6 +109,7 @@ final class ContentGraph
 
         if ($output) {
             $output->progressFinish();
+            $output->outputLine();
             $output->outputLine('Successfully created ' . $numberOfReferenceRelations . ' reference relations.');
         }
     }

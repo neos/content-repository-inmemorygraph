@@ -120,6 +120,7 @@ final class GraphService
         }
         if ($output) {
             $output->progressFinish();
+            $output->outputLine();
             $output->outputLine('Initialized nodes after ' . (microtime(true) - $start));
         }
 
@@ -251,6 +252,7 @@ final class GraphService
         }
         if ($output) {
             $output->progressFinish();
+            $output->outputLine();
         }
 
         return $nodeAssignmentRegistry;
