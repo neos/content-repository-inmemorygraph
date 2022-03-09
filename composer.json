@@ -5,7 +5,7 @@
     "license": "proprietary",
     "require": {
         "neos/content-repository": ">=3.0",
-        "neos/content-repository-dimensionspace": "dev-master"
+        "neos/content-repository-dimensionspace": "^1.0"
     },
     "autoload": {
         "psr-4": {
